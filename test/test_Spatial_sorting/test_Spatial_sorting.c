@@ -19,8 +19,18 @@
                                                                             *
 Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 
-#include <hxt_vertices.h>
+#include <kdt_vertices.h>
 #include <time.h>
+
+typedef enum distribution {
+  AXES,
+  CUBE,
+  CYLINDER,
+  DISK,
+  PLANES,
+  PARABOLOID,
+  SPIRAL
+} Distribution;
 
 // simple visualisation with gmsh
 status_t gmshTetDraw(mesh_t* mesh, const char* filename)
@@ -76,48 +86,40 @@ status_t gmshTetDraw(mesh_t* mesh, const char* filename)
   return HXT_STATUS_OK;
 }
 
-
-status_t read_nodes(const char* filename, bbox_t* bbox, vertex_t** vertices_p, uint32_t* npts)
+void __points_in_cube(vertex_t** vertices_p, uint32_t npts)
 {
-  FILE* file = fopen(filename,"r");
-  if(file==NULL)
-    return HXT_ERROR_MSG(HXT_STATUS_FAILED, "cannot open file");
-
-  if(fscanf(file," %d %*d %*d ", npts)==0)
-    return HXT_ERROR_MSG(HXT_STATUS_FAILED, "error reading 1st line of %s", filename);
-
-  printf("file contain %d vertices\n", *npts);
-
-  HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*(*npts)) );
-
-  for (uint32_t i=0; i<(*npts); i++){
-    if(fscanf(file, " %*d %lf %lf %lf ", &(*vertices_p)[i].coord[0], &(*vertices_p)[i].coord[1], &(*vertices_p)[i].coord[2])==0)
-      return HXT_ERROR_MSG(HXT_STATUS_FAILED, "error reading %s", filename);
-
-    for (int j=0; j<3; j++) {
-      if((*vertices_p)[i].coord[j]<bbox->min[j])
-        bbox->min[j]=(*vertices_p)[i].coord[j];
-      if((*vertices_p)[i].coord[j]>bbox->max[j])
-        bbox->max[j]=(*vertices_p)[i].coord[j];
-    }
-  }
-
-  fclose(file);
-  puts("finished reading");
-  return HXT_STATUS_OK;
-}
-
-
-status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
-{
-  HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
-
-  for (uint32_t i=0; i<npts; i++) {
+    for (uint32_t i=0; i<npts; i++) {
     (*vertices_p)[i].coord[0] = (double) rand()/RAND_MAX;
     (*vertices_p)[i].coord[1] = (double) rand()/RAND_MAX;
     (*vertices_p)[i].coord[2] = (double) rand()/RAND_MAX;
   }
+}
 
+status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Distribution d)
+{
+  HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
+
+  switch (d) {
+      case  AXES:
+          break;
+      case CUBE:
+          __points_in_cube(vertices_p, npts);
+          break;
+      case CYLINDER:
+          break;
+      case DISK:
+          break;
+      case PLANES:
+          break;
+      case PARABOLOID:
+          break;
+      case SPIRAL:
+          break;
+      default:
+          break;
+  }
+
+  // Compute bounding box
   bbox->min[0] = 0.0;
   bbox->min[1] = 0.0;
   bbox->min[2] = 0.0;
@@ -125,71 +127,36 @@ status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
   bbox->max[1] = 1.0;
   bbox->max[2] = 1.0;
 
-  // // worst case scenario
-  // for(uint32_t i=0; i<npts/2; i++) {
-  //   (*vertices_p)[i].coord[0] = 0.0;
-  //   (*vertices_p)[i].coord[1] = 2.0*i/npts;
-  //   (*vertices_p)[i].coord[2] = 0.5;
-  // }
-
-  // for(uint32_t i=npts/2; i<npts; i++) {
-  //   (*vertices_p)[i].coord[0] = 1.0;
-  //   (*vertices_p)[i].coord[1] = 0.5;
-  //   (*vertices_p)[i].coord[2] = 2.0*(i - npts/2)/npts;
-  // }
-
-  // bbox->min[0] = 0.0;
-  // bbox->min[1] = 0.0;
-  // bbox->min[2] = 0.0;
-  // bbox->max[0] = 1.0;
-  // bbox->max[1] = 2.0*(npts-1)/npts;
-  // bbox->max[2] = 2.0*(npts - 1 - npts/2)/npts;
-
   return HXT_STATUS_OK;
 }
-
-
 
 int main(int argc, char **argv)
 {
     printf("%d\n", argc);
 
-  if(argc<2){
-    printf("usage: %s INPUT OUTPUT\n"
-                "INPUT is a .node file:\n"
-                "   N+1 3 0\n"
-                "   1 x0 y0 z0\n"
-                "   2 x1 y1 z1\n"
-                "   3 x2 y2 z2\n"
-                "     ...\n"
-                "   N+1 xN yN zN\n\n"
-                "  or \"-NUM\" to generate NUM random point inside the unit cube\n\n"
-                "OUTPUT is the tetrahedral mesh in GMSH format\n"
-                "  or \"-\" if you do not want any output file", argv[0]);
+  if(argc != 3){
+    printf("usage: %s -[acCdpPs] NUMBER\n"
+                "\t-a\t--axes      \tgenerate points around the x, y and z axes.\n"
+                "\t-c\t--cube      \tgenerate points inside a unit cube.\n"
+                "\t-C\t--cylinder  \tgenerate points inside a unit cylinder.\n"
+                "\t-d\t--disk      \tgenerate points inside a unit disk (cylinder with height = 0.1).\n"
+                "\t-p\t--planes    \tgenerate points around canonical planes.\n"
+                "\t-P\t--paraboloid\tgenerate points on the surface of a paraboloid.\n"
+                "\t-s\t--spiral    \tgenerate points along a spiral.\n", argv[0]);
     return 0;
   }
 
   mesh_t* mesh;
   HXT_CHECK( HXT_mesh_create(&mesh) );
 
-  if(argv[1][0]!='-' || argv[1][1]<'0' || argv[1][1]>'9'){
-    HXT_CHECK( read_nodes(argv[1], &mesh->bbox, &mesh->vertices, &mesh->num_vertices) );
-    mesh->size_vertices = mesh->num_vertices;
-  }
-  else {
-    if(sscanf(argv[1]+1, " %u ", &mesh->num_vertices)==0)
-      return HXT_ERROR_MSG(HXT_STATUS_ERROR ,"%s is not a valid number", argv[1]+1);
+  //if(sscanf(argv[1]+1, " %u ", &mesh->num_vertices)==0)
+  //return HXT_ERROR_MSG(HXT_STATUS_ERROR ,"%s is not a valid number", argv[1]+1);
 
-    HXT_INFO("creating %u vertices", mesh->num_vertices);
-    HXT_CHECK( create_nodes(&mesh->bbox, &mesh->vertices, mesh->num_vertices) );
-  }
+  HXT_INFO("creating %u vertices", mesh->num_vertices);
+  HXT_CHECK( create_nodes(&mesh->bbox, &mesh->vertices, mesh->num_vertices, CUBE) );
 
   clock_t time0 = clock();
-
-  // TODO: substituir por nossa ordenação
   HXT_CHECK( KDT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
-  // END TODO
-
   clock_t time1 = clock();
 
   printf("BRIO : %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);

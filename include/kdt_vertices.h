@@ -22,7 +22,7 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 #ifndef _KDTREE_VERTICES_
 #define _KDTREE_VERTICES_
 
-#include "hxt_tetrahedra.h"
+#include <hxt_tetrahedra.h>
 
 // Estrutura que representa uma árvore-KD.
 typedef struct kd_node_t_struct {

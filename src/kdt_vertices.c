@@ -19,7 +19,7 @@
                                                                             *
 Author: Rafael Vanali (email@user.com)                                      */
 
-#include "kdt_vertices.h"
+#include <kdt_vertices.h>
 /*
 int __cmpfunc_x (const void * a, const void * b)
 {
