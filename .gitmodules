@@ -1,0 +1,3 @@
+[submodule "lib/hxt_seqdel"]
+	path = lib/hxt_seqdel
+	url = https://git.immc.ucl.ac.be/hextreme/hxt_seqdel.git
