@@ -1,0 +1,46 @@
+# depslib dependency file v1.0
+1708121759 source:c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\hxt_tetrahedra.c
+	"hxt_tetrahedra.h"
+	"predicates.h"
+	<float.h>
+
+1708121759 c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\hxt_tetrahedra.h
+	"hxt_tools.h"
+
+1708121759 c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\hxt_tools.h
+	<stdio.h>
+	<stdlib.h>
+	<stdint.h>
+	<string.h>
+	<stdarg.h>
+
+1708121759 c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\predicates.h
+
+1708121759 source:c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\hxt_vertices.c
+	<string.h>
+	"hxt_vertices.h"
+	<immintrin.h>
+	<math.h>
+	<float.h>
+
+1708121759 c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\hxt_vertices.h
+	"hxt_tetrahedra.h"
+
+1708121759 source:c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\lib\hxt_seqdel\src\predicates.c
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<float.h>
+	<fpu_control.h>
+	"hxt_tools.h"
+
+1708121753 source:c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\src\kdt_vertices.c
+	"kdt_vertices.h"
+
+1708121753 c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\include\kdt_vertices.h
+	"hxt_tetrahedra.h"
+
+1708121753 source:c:\users\vicen\onedrive\햞ea de trabalho\spatial-kd-tree-sorting\test\test_spatial_sorting\test_spatial_sorting.c
+	<hxt_vertices.h>
+	<time.h>
+
