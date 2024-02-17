@@ -20,140 +20,6 @@
 Author: Rafael Vanali (email@user.com)                                      */
 
 #include <kdt_vertices.h>
-/*
-int __cmpfunc_x (const void * a, const void * b)
-{
-   vertex_t* v = (vertex_t*)a;
-   vertex_t* w = (vertex_t*)b;
-   if (v->coord[0] > w->coord[0])
-      return 1;
-   else if (v->coord[0] < w->coord[0])
-      return -1;
-   else
-      return 0;
-}
-
-int __cmpfunc_y (const void * a, const void * b)
-{
-   vertex_t* v = (vertex_t*)a;
-   vertex_t* w = (vertex_t*)b;
-   if (v->coord[1] > w->coord[1])
-      return 1;
-   else if (v->coord[1] < w->coord[1])
-      return -1;
-   else
-      return 0;
-}
-
-int __cmpfunc_z (const void * a, const void * b)
-{
-   vertex_t* v = (vertex_t*)a;
-   vertex_t* w = (vertex_t*)b;
-   if (v->coord[2] > w->coord[2])
-      return 1;
-   else if (v->coord[2] < w->coord[2])
-      return -1;
-   else
-      return 0;
-}
-*/
-
-/*
-kd_node_t *__KDT_vertices_build_kdtree(int axis, vertex_t* vertices, const uint32_t n )
-{
-	// Caso o conjunto de pontos esteja vazio, retorne NULL
-	if (n == 0)
-		return NULL;
-
-	switch (axis) {
-        case 0:
-          qsort(vertices, n, sizeof(vertex_t), __cmpfunc_x);
-          break;
-        case 1:
-          qsort(vertices, n, sizeof(vertex_t), __cmpfunc_y);
-          break;
-        case 2:
-          qsort(vertices, n, sizeof(vertex_t), __cmpfunc_z);
-          break;
-        default:
-            fprintf(stderr, "eixo desconhecido\n");
-            exit(1);
-	}
-
-	// Cálculo da Mediana
-
-	// Calcula a mediana com base no n do vertices de pontos
-	int mediana;
-	mediana = n / 2;
-
-	// Obtém o ponto da mediana que será o nó raiz
-	vertex_t ponto_Mediana;
-	ponto_Mediana = vertices[mediana];
-
-	// Pula todos os pontos que têm a mesma coordenada x ou y que o ponto mediana, dependendo da dimensão
-	// Enquanto a mediana for menor que 1 garante que não ultrapasse os limites do array.
-	while (mediana + 1 < n)
-	{
-		if (axis == 0)	// Se está dividindo pela coordenada x
-		{
-			// Compara a coordenada x do ponto seguinte com a coordenada x da mediana
-			if (vertices[mediana + 1].coord[0] == ponto_Mediana.coord[0])	// Se forem iguais, significa que estamos na mesma linha vertical
-				mediana++;	// Para verificar o próximo ponto
-			else
-				break;	// Se os pontos não têm a mesma coordenada x, sai do while
-		}
-
-		else if (axis == 1)    // Se está dividindo pela coordenada y
-		{
-			if (vertices[mediana + 1].coord[1] == ponto_Mediana.coord[1])    // Se forem iguais, significa que estamos na mesma linha horizontal
-				mediana++;    // Para verificar o próximo ponto
-			else
-				break;    // Se os pontos não têm a mesma coordenada y, sai do while
-		}
-
-		else if (axis == 2)		// Se está dividindo pela coordenada z
-		{
-			if (vertices[mediana + 1].coord[2] == ponto_Mediana.coord[2])		// Se forem iguais, significa que estamos na mesma linha na dimensão z
-				mediana++;    // Para verificar o próximo ponto
-			else
-				break;    // Se os pontos não têm a mesma coordenada z, sai do while
-		}
-	}
-
-	// Cria de forma recursiva as subárvores esquereda e direita
-
-	// Obtém o ponto da mediana que será usado como raiz do nó atual
-	//ponto_Mediana = vertices[mediana];
-
-	// Calcula a nova dimensão para a próxima divisão (alterna entre 0 e 1, ou seja, entre x e y)
-	int nova_Dimensao = (axis + 1) % 3;
-
-	// Aloca memória para o novo nó
-	kd_node_t *no = (kd_node_t*) malloc(sizeof(kd_node_t));
-
-	// Define as propriedades para o novo nó
-	no->vertex = vertices + mediana;		// Define o ponto associado ao nó
-	no->axis = axis;	// Define a dimensão de divisão do nó
-
-	//num_Nos++;	// Incrementa o Numero de Nós
-
-	// Constrói de forma recursiva a subárvore esquerda usando a nova dimensão
-	no->esquerdo = __KDT_vertices_build_kdtree(nova_Dimensao, vertices, mediana);
-
-	// Constrói de forma recursiva a subárvore direita usando a nova dimensão e ajustando os índices
-	no->direito = __KDT_vertices_build_kdtree(nova_Dimensao, vertices + mediana + 1, n - mediana - 1);
-
-	return no;	// Retorna o nó da raiz
-}
-*/
-
-//********************************************************************************************
-//********************************************************************************************
-//********************************************************************************************
-//********************************************************************************************
-//********************************************************************************************
-//********************************************************************************************
-
 
 // Função para trocar dois vértices
 void __swapVertices( vertex_t *a, vertex_t *b )
@@ -190,7 +56,7 @@ int __partition(vertex_t* vertices, int left, int right, int axis)
 }
 
 // Função para encontrar a mediana dos pontos
-void __select_Median(vertex_t* vertices, int n, int k, int axis)
+void __quick_select(vertex_t* vertices, int n, int k, int axis)
 {
 	int left = 0;
 	int right = n - 1;
@@ -213,28 +79,11 @@ kd_node_t *__KDT_vertices_build_kdtree(int axis, vertex_t* vertices, const uint3
 {
 	if ( n == 0 )
 		return NULL;
-/*
-	// Ordena os pontos uma única vez
-	switch (axis)
-	{
-		case 0:
-			qsort(vertices, n, sizeof(vertex_t), __cmpfunc_x);
-			break;
-		case 1:
-			qsort(vertices, n, sizeof(vertex_t), __cmpfunc_y);
-			break;
-		case 2:
-			qsort(vertices, n, sizeof(vertex_t), __cmpfunc_z);
-			break;
-		default:
-			fprintf(stderr, "eixo desconhecido\n");
-			exit(1);
-	}*/
 
 	// Calcula a mediana usando o algoritmo de seleção de mediana
-	int mediana = n / 2;
+	int median = n / 2;
 
-	__select_Median(vertices, n, mediana, axis);
+	__quick_select(vertices, n, median, axis);
 
 	// Cria o nó atual
 	kd_node_t *no = (kd_node_t*) malloc(sizeof(kd_node_t));
@@ -244,17 +93,17 @@ kd_node_t *__KDT_vertices_build_kdtree(int axis, vertex_t* vertices, const uint3
 		exit(1);
 	}
 
-	no->vertex = &vertices[mediana];
+	no->vertex = &vertices[median];
 	no->axis = axis;
 
 	// Calcula a nova dimensão para a próxima divisão
-	int nova_Dimensao = (axis + 1) % 3;
+	int next_axis = (axis + 1) % 3;
 
 	// Constrói de forma recursiva a subárvore esquerda
-	no->esquerdo = __KDT_vertices_build_kdtree(nova_Dimensao, vertices, mediana);
+	no->esquerdo = __KDT_vertices_build_kdtree(next_axis, vertices, median);
 
 	// Constrói de forma recursiva a subárvore direita
-	no->direito = __KDT_vertices_build_kdtree(nova_Dimensao, vertices + mediana + 1, n - mediana - 1);
+	no->direito = __KDT_vertices_build_kdtree(next_axis, vertices + median + 1, n - median - 1);
 
 	return no;
 }

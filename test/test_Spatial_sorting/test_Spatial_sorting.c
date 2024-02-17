@@ -238,7 +238,9 @@ int main(int argc, char **argv)
 
   // check for a valid sorting algorithm
   if (!alg_OK) {
-    fprintf(stderr, "%s: missing sorting algorithm.", argv[0]);
+    fprintf(stderr, "%s: missing sorting algorithm.\n", argv[0]);
+    printf("Usage: %s [OPTION]...\n\n", argv[0]);
+    cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
     cag_option_print_error(&acontext, stderr);
     return EXIT_FAILURE;
   }
