@@ -19,11 +19,15 @@
                                                                             *
 Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 
-#include <kdt_vertices.h>
 #include <time.h>
 #include <string.h>
+#include <assert.h>
 
-typedef enum distribution {
+#include <cargs.h>
+
+#include <kdt_vertices.h>
+
+typedef enum point_distribution {
   AXES,
   CUBE,
   CYLINDER,
@@ -31,12 +35,12 @@ typedef enum distribution {
   PLANES,
   PARABOLOID,
   SPIRAL
-} Distribution;
+} Point_distribution;
 
-typedef enum algorithm {
+typedef enum sorting_algorithm {
+  HXT = 0,
   KDT,
-  HXT
-} Algorithm;
+} Sorting_algorithm;
 
 // simple visualisation with gmsh
 status_t gmshTetDraw(mesh_t* mesh, const char* filename)
@@ -92,7 +96,7 @@ status_t gmshTetDraw(mesh_t* mesh, const char* filename)
   return HXT_STATUS_OK;
 }
 
-void __points_in_cube(vertex_t** vertices_p, uint32_t npts)
+void __points_within_cube(vertex_t** vertices_p, uint32_t npts)
 {
     for (uint32_t i=0; i<npts; i++) {
     (*vertices_p)[i].coord[0] = (double) rand()/RAND_MAX;
@@ -101,30 +105,35 @@ void __points_in_cube(vertex_t** vertices_p, uint32_t npts)
   }
 }
 
-status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Distribution d)
+status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
+  uint32_t n;
+  HXT_INFO("creating %u vertices", npts);
   HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
 
   switch (d) {
-      case  AXES:
-          break;
+      case AXES:
+          return HXT_STATUS_FAILED;
       case CUBE:
-          __points_in_cube(vertices_p, npts);
+          __points_within_cube(vertices_p, npts);
           break;
       case CYLINDER:
-          break;
+          return HXT_STATUS_FAILED;
       case DISK:
-          break;
+          return HXT_STATUS_FAILED;
       case PLANES:
-          break;
+          return HXT_STATUS_FAILED;
       case PARABOLOID:
-          break;
+          return HXT_STATUS_FAILED;
       case SPIRAL:
-          break;
+          return HXT_STATUS_FAILED;
       default:
-          break;
+          return HXT_STATUS_FAILED;
   }
 
+  // TODO:
+  // CALCULAR O BOUNDING BOX MANUALMENTE,
+  // USANDO UMA FUNÇÃO AUXILIAR: __get_bounding_box(...)
   // Compute bounding box
   bbox->min[0] = 0.0;
   bbox->min[1] = 0.0;
@@ -136,64 +145,171 @@ status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Distri
   return HXT_STATUS_OK;
 }
 
+static struct cag_option options[] = {
+  {.identifier = 'H',
+    .access_letters = "H",
+    .access_name = "hxt",
+    .value_name = NULL,
+    .description = "use the HXT sorting function"},
+
+  {.identifier = 'K',
+    .access_letters = "K",
+    .access_name = "kdt",
+    .value_name = NULL,
+    .description = "use the cut-longest-edge kd-tree sorting function"},
+
+  {.identifier = 'a',
+    .access_letters = "a",
+    .access_name = "axes",
+    .value_name = "NUMBER",
+    .description = "generate points around the x, y and z axes"},
+
+  {.identifier = 'c',
+    .access_letters = "c",
+    .access_name = "cube",
+    .value_name = "NUMBER",
+    .description = "generate points inside a unit cube"},
+
+  {.identifier = 'C',
+    .access_letters = "C",
+    .access_name = "cylinder",
+    .value_name = "NUMBER",
+    .description = "generate points inside a unit cylinder"},
+
+  {.identifier = 'd',
+    .access_letters = "d",
+    .access_name = "disk",
+    .value_name = "NUMBER",
+    .description = "generate points inside a unit disk (cylinder with height = 0.1)"},
+
+  {.identifier = 'p',
+    .access_letters = "p",
+    .access_name = "planes",
+    .value_name = "NUMBER",
+    .description = "generate points around canonical planes"},
+
+  {.identifier = 'P',
+    .access_letters = "P",
+    .access_name = "paraboloid",
+    .value_name = "NUMBER",
+    .description = "generate points on the surface of a paraboloid"},
+
+  {.identifier = 's',
+    .access_letters = "s",
+    .access_name = "spiral",
+    .value_name = "NUMBER",
+    .description = "generate points along a spiral"},
+
+  {.identifier = 'h',
+    .access_letters = "h",
+    .access_name = "help",
+    .description = "shows the command help"}};
+
 int main(int argc, char **argv)
 {
-    printf("%d\n", argc);
-
-  if(argc != 4){
-    printf("usage: %s -[hk] -[acCdpPs] NUMBER\n"
-                "\nSORTING METHOD\n"
-                "\t-h\t--hxt       \tuse HXT function.\n"
-                "\t-k\t--kdt       \tuse KDT function.\n"
-                "\nPOINT DISTRIBUTION\n"
-                "\t-a\t--axes      \tgenerate points around the x, y and z axes.\n"
-                "\t-c\t--cube      \tgenerate points inside a unit cube.\n"
-                "\t-C\t--cylinder  \tgenerate points inside a unit cylinder.\n"
-                "\t-d\t--disk      \tgenerate points inside a unit disk (cylinder with height = 0.1).\n"
-                "\t-p\t--planes    \tgenerate points around canonical planes.\n"
-                "\t-P\t--paraboloid\tgenerate points on the surface of a paraboloid.\n"
-                "\t-s\t--spiral    \tgenerate points along a spiral.\n", argv[0], argv[1]);
-    return 0;
-  }
-
-  // Check whether to use KDT or HXT
-  Algorithm alg;
-  if ((strcmp(argv[1], "-k") == 0 || strcmp(argv[1], "--kdt") == 0) && argc == 4)
-    alg = KDT;
-  else if ((strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--hxt") == 0 && argc == 4))
-    alg = HXT;
-  else {
-    printf("Invalid option for algorithm.\n");
-    return 0;
-  }
-
   mesh_t* mesh;
+  uint32_t npts = 0;
+  Sorting_algorithm alg = -1;
+  const char *value = NULL;
+
+  cag_option_context acontext;
+  cag_option_init(&acontext, options, CAG_ARRAY_SIZE(options), argc, argv);
+
   HXT_CHECK( HXT_mesh_create(&mesh) );
-  /*
-  // Obter o número de vértices
-  uint32_t num_vertices;
-  if(sscanf(argv[2], " %u ", &num_vertices) == 0) {
-      printf("%s is not a valid number\n", argv[2]);
-      return 0;
+
+  // get the target sorting algorithm
+  bool alg_OK = false;
+  while (cag_option_fetch(&acontext)) {
+    switch (cag_option_get_identifier(&acontext)) {
+        case 'H':
+          alg = HXT;
+          alg_OK = true;
+          break;
+        case 'K':
+          alg = KDT;
+          alg_OK = true;
+          break;
+        case 'h':
+          printf("Usage: %s [OPTION]...\n\n", argv[0]);
+          cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
+          return EXIT_SUCCESS;
+    }
   }
-  */
 
-  //if(sscanf(argv[1]+1, " %u ", &mesh->num_vertices)==0)
-  //return HXT_ERROR_MSG(HXT_STATUS_ERROR ,"%s is not a valid number", argv[1]+1);
+  // check for a valid sorting algorithm
+  if (!alg_OK) {
+    fprintf(stderr, "%s: missing sorting algorithm.", argv[0]);
+    cag_option_print_error(&acontext, stderr);
+    return EXIT_FAILURE;
+  }
 
-  HXT_INFO("creating %u vertices", mesh->num_vertices);
-  HXT_CHECK( create_nodes(&mesh->bbox, &mesh->vertices, mesh->num_vertices, CUBE) );
+  HXT_INFO("sorting algorithm: %s", ((alg == HXT)?("HXT native"):("cut-longest-edge kd-tree")));
+
+  cag_option_context dcontext;
+  cag_option_init(&dcontext, options, CAG_ARRAY_SIZE(options), argc, argv);
+
+  while (cag_option_fetch(&dcontext)) {
+    switch (cag_option_get_identifier(&dcontext)) {
+        case 'a':
+          HXT_INFO("generating points around coordinate axes");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
+          break;
+        case 'd':
+          HXT_INFO("generating points within disk");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
+          break;
+        case 'c':
+          HXT_INFO("generating points within cube");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
+          break;
+        case 'C':
+          HXT_INFO("generating points within cylinder");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
+          break;
+        case 'p':
+          HXT_INFO("generating points around coordinate planes");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
+          break;
+        case 'P':
+          HXT_INFO("generating points around paraboloid");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
+          break;
+        case 's':
+          HXT_INFO("generating points around logarithmic spiral");
+          value = cag_option_get_value(&dcontext);
+          npts = atoi(value);
+          assert(create_nodes(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
+          break;
+    }
+  }
+  mesh->num_vertices = npts;
 
   clock_t time0 = clock();
-  // Run the corresponding algorithm
-  if (alg == KDT)
-    HXT_CHECK( KDT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
-  else if (alg == HXT)
-    HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
-
+  // Run the chosen sorting algorithm
+  switch (alg) {
+      case HXT:
+          HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+          break;
+      case KDT:
+          HXT_CHECK( KDT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+          break;
+      default:
+          break;
+  }
   clock_t time1 = clock();
-
-  printf("BRIO : %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
+  printf("BRIO: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
 
   // this is were we are really doing the delaunay...
   HXT_CHECK( HXT_tetrahedra_compute(mesh) );
@@ -207,9 +323,6 @@ int main(int argc, char **argv)
       numGhosts++;
   }
   printf("%u vertices, %lu Delaunay tetrahedra, %lu ghosts, %f s\n", mesh->num_vertices, mesh->tetrahedra.num - numGhosts, numGhosts, (double) (time2-time0)/CLOCKS_PER_SEC);
-
-  if(argv[2][0]!='-' || argv[2][1])
-    HXT_CHECK( gmshTetDraw(mesh, argv[2]) );
 
   HXT_CHECK( HXT_mesh_delete(&mesh) );
 
