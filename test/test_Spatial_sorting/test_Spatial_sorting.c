@@ -21,6 +21,7 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 
 #include <kdt_vertices.h>
 #include <time.h>
+#include <string.h>
 
 typedef enum distribution {
   AXES,
@@ -31,6 +32,11 @@ typedef enum distribution {
   PARABOLOID,
   SPIRAL
 } Distribution;
+
+typedef enum algorithm {
+  KDT,
+  HXT
+} Algorithm;
 
 // simple visualisation with gmsh
 status_t gmshTetDraw(mesh_t* mesh, const char* filename)
@@ -134,7 +140,7 @@ int main(int argc, char **argv)
 {
     printf("%d\n", argc);
 
-  if(argc != 3){
+  if(argc != 4){
     printf("usage: %s -[acCdpPs] NUMBER\n"
                 "\t-a\t--axes      \tgenerate points around the x, y and z axes.\n"
                 "\t-c\t--cube      \tgenerate points inside a unit cube.\n"
@@ -142,12 +148,34 @@ int main(int argc, char **argv)
                 "\t-d\t--disk      \tgenerate points inside a unit disk (cylinder with height = 0.1).\n"
                 "\t-p\t--planes    \tgenerate points around canonical planes.\n"
                 "\t-P\t--paraboloid\tgenerate points on the surface of a paraboloid.\n"
-                "\t-s\t--spiral    \tgenerate points along a spiral.\n", argv[0]);
+                "\t-s\t--spiral    \tgenerate points along a spiral.\n",
+                "usage: %s -[ht] NUMBER\n"
+                "\t-k\t--kdt       \tuse KDT function.\n"
+                "\t-h\t--hxt       \tuse HXT function.\n", argv[0], argv[1]);
+    return 0;
+  }
+
+  // Check whether to use KDT or HXT
+  Algorithm alg;
+  if ((strcmp(argv[1], "-k") == 0 || strcmp(argv[1], "--kdt") == 0) && argc == 4)
+    alg = KDT;
+  else if ((strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--hxt") == 0 && argc == 4))
+    alg = HXT;
+  else {
+    printf("Invalid option for algorithm.\n");
     return 0;
   }
 
   mesh_t* mesh;
   HXT_CHECK( HXT_mesh_create(&mesh) );
+  /*
+  // Obter o número de vértices
+  uint32_t num_vertices;
+  if(sscanf(argv[2], " %u ", &num_vertices) == 0) {
+      printf("%s is not a valid number\n", argv[2]);
+      return 0;
+  }
+  */
 
   //if(sscanf(argv[1]+1, " %u ", &mesh->num_vertices)==0)
   //return HXT_ERROR_MSG(HXT_STATUS_ERROR ,"%s is not a valid number", argv[1]+1);
@@ -156,7 +184,12 @@ int main(int argc, char **argv)
   HXT_CHECK( create_nodes(&mesh->bbox, &mesh->vertices, mesh->num_vertices, CUBE) );
 
   clock_t time0 = clock();
-  HXT_CHECK( KDT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+  // Run the corresponding algorithm
+  if (alg == KDT)
+    HXT_CHECK( KDT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+  else if (alg == HXT)
+    HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+
   clock_t time1 = clock();
 
   printf("BRIO : %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
