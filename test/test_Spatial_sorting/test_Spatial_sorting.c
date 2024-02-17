@@ -141,17 +141,18 @@ int main(int argc, char **argv)
     printf("%d\n", argc);
 
   if(argc != 4){
-    printf("usage: %s -[acCdpPs] NUMBER\n"
+    printf("usage: %s -[hk] -[acCdpPs] NUMBER\n"
+                "\nSORTING METHOD\n"
+                "\t-h\t--hxt       \tuse HXT function.\n"
+                "\t-k\t--kdt       \tuse KDT function.\n"
+                "\nPOINT DISTRIBUTION\n"
                 "\t-a\t--axes      \tgenerate points around the x, y and z axes.\n"
                 "\t-c\t--cube      \tgenerate points inside a unit cube.\n"
                 "\t-C\t--cylinder  \tgenerate points inside a unit cylinder.\n"
                 "\t-d\t--disk      \tgenerate points inside a unit disk (cylinder with height = 0.1).\n"
                 "\t-p\t--planes    \tgenerate points around canonical planes.\n"
                 "\t-P\t--paraboloid\tgenerate points on the surface of a paraboloid.\n"
-                "\t-s\t--spiral    \tgenerate points along a spiral.\n",
-                "usage: %s -[ht] NUMBER\n"
-                "\t-k\t--kdt       \tuse KDT function.\n"
-                "\t-h\t--hxt       \tuse HXT function.\n", argv[0], argv[1]);
+                "\t-s\t--spiral    \tgenerate points along a spiral.\n", argv[0], argv[1]);
     return 0;
   }
 
