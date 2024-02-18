@@ -38,9 +38,70 @@ typedef enum point_distribution {
 } Point_distribution;
 
 typedef enum sorting_algorithm {
-  HXT = 0,
+  UNDEFINED_ALGORITHM = -1,
+  HXT,
   KDT,
 } Sorting_algorithm;
+
+static struct cag_option options[] = {
+  {.identifier = 'H',
+    .access_letters = "H",
+    .access_name = "hxt",
+    .value_name = NULL,
+    .description = "use the HXT sorting function"},
+
+  {.identifier = 'K',
+    .access_letters = "K",
+    .access_name = "kdt",
+    .value_name = NULL,
+    .description = "use the cut-longest-edge kd-tree sorting function"},
+
+  {.identifier = 'a',
+    .access_letters = "a",
+    .access_name = "axes",
+    .value_name = "NUMBER",
+    .description = "generate points around the x, y and z axes"},
+
+  {.identifier = 'c',
+    .access_letters = "c",
+    .access_name = "cube",
+    .value_name = "NUMBER",
+    .description = "generate points inside a unit cube"},
+
+  {.identifier = 'C',
+    .access_letters = "C",
+    .access_name = "cylinder",
+    .value_name = "NUMBER",
+    .description = "generate points inside a unit cylinder"},
+
+  {.identifier = 'd',
+    .access_letters = "d",
+    .access_name = "disk",
+    .value_name = "NUMBER",
+    .description = "generate points inside a unit disk (cylinder with height = 0.1)"},
+
+  {.identifier = 'p',
+    .access_letters = "p",
+    .access_name = "planes",
+    .value_name = "NUMBER",
+    .description = "generate points around canonical planes"},
+
+  {.identifier = 'P',
+    .access_letters = "P",
+    .access_name = "paraboloid",
+    .value_name = "NUMBER",
+    .description = "generate points on the surface of a paraboloid"},
+
+  {.identifier = 's',
+    .access_letters = "s",
+    .access_name = "spiral",
+    .value_name = "NUMBER",
+    .description = "generate points along a spiral"},
+
+  {.identifier = 'h',
+    .access_letters = "h",
+    .access_name = "help",
+    .description = "shows the command help"}};
 
 // simple visualisation with gmsh
 status_t gmshTetDraw(mesh_t* mesh, const char* filename)
@@ -105,7 +166,7 @@ void __points_within_cube(vertex_t** vertices_p, uint32_t npts)
   }
 }
 
-status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
+status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
   uint32_t n;
   HXT_INFO("creating %u vertices", npts);
@@ -145,161 +206,117 @@ status_t create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_
   return HXT_STATUS_OK;
 }
 
-static struct cag_option options[] = {
-  {.identifier = 'H',
-    .access_letters = "H",
-    .access_name = "hxt",
-    .value_name = NULL,
-    .description = "use the HXT sorting function"},
+uint32_t create_nodes(int argc, const char *argv[], mesh_t *mesh)
+{
+  uint32_t npts = 0;
+  const char *value = NULL;
+  cag_option_context context;
+  cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
 
-  {.identifier = 'K',
-    .access_letters = "K",
-    .access_name = "kdt",
-    .value_name = NULL,
-    .description = "use the cut-longest-edge kd-tree sorting function"},
+  while (cag_option_fetch(&context)) {
+    switch (cag_option_get_identifier(&context)) {
+        case 'a':
+          HXT_INFO("generating points around coordinate axes");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
+          break;
+        case 'd':
+          HXT_INFO("generating points within disk");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
+          break;
+        case 'c':
+          HXT_INFO("generating points within cube");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
+          break;
+        case 'C':
+          HXT_INFO("generating points within cylinder");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
+          break;
+        case 'p':
+          HXT_INFO("generating points around coordinate planes");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
+          break;
+        case 'P':
+          HXT_INFO("generating points around paraboloid");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
+          break;
+        case 's':
+          HXT_INFO("generating points around logarithmic spiral");
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
+          break;
+    }
+  }
+  return npts;
+}
 
-  {.identifier = 'a',
-    .access_letters = "a",
-    .access_name = "axes",
-    .value_name = "NUMBER",
-    .description = "generate points around the x, y and z axes"},
+Sorting_algorithm get_sorting_algorithm(int argc, const char *argv[])
+{
+  cag_option_context context;
+  cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
+  // get the target sorting algorithm
+  while (cag_option_fetch(&context)) {
+    switch (cag_option_get_identifier(&context)) {
+        case 'H':
+          return HXT;
+        case 'K':
+          return KDT;
+    }
+  }
+  return UNDEFINED_ALGORITHM;
+}
 
-  {.identifier = 'c',
-    .access_letters = "c",
-    .access_name = "cube",
-    .value_name = "NUMBER",
-    .description = "generate points inside a unit cube"},
-
-  {.identifier = 'C',
-    .access_letters = "C",
-    .access_name = "cylinder",
-    .value_name = "NUMBER",
-    .description = "generate points inside a unit cylinder"},
-
-  {.identifier = 'd',
-    .access_letters = "d",
-    .access_name = "disk",
-    .value_name = "NUMBER",
-    .description = "generate points inside a unit disk (cylinder with height = 0.1)"},
-
-  {.identifier = 'p',
-    .access_letters = "p",
-    .access_name = "planes",
-    .value_name = "NUMBER",
-    .description = "generate points around canonical planes"},
-
-  {.identifier = 'P',
-    .access_letters = "P",
-    .access_name = "paraboloid",
-    .value_name = "NUMBER",
-    .description = "generate points on the surface of a paraboloid"},
-
-  {.identifier = 's',
-    .access_letters = "s",
-    .access_name = "spiral",
-    .value_name = "NUMBER",
-    .description = "generate points along a spiral"},
-
-  {.identifier = 'h',
-    .access_letters = "h",
-    .access_name = "help",
-    .description = "shows the command help"}};
+void usage(const char *argv[])
+{
+  printf("Usage: %s [OPTION]...\n\n", argv[0]);
+  cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
+}
 
 int main(int argc, char **argv)
 {
   mesh_t* mesh;
-  uint32_t npts = 0;
   Sorting_algorithm alg = -1;
-  const char *value = NULL;
+  cag_option_context context;
 
-  cag_option_context acontext;
-  cag_option_init(&acontext, options, CAG_ARRAY_SIZE(options), argc, argv);
-
-  HXT_CHECK( HXT_mesh_create(&mesh) );
-
-  // get the target sorting algorithm
-  bool alg_OK = false;
-  while (cag_option_fetch(&acontext)) {
-    switch (cag_option_get_identifier(&acontext)) {
-        case 'H':
-          alg = HXT;
-          alg_OK = true;
-          break;
-        case 'K':
-          alg = KDT;
-          alg_OK = true;
-          break;
+  // Grab help menu
+  cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
+  while (cag_option_fetch(&context)) {
+    switch (cag_option_get_identifier(&context)) {
         case 'h':
-          printf("Usage: %s [OPTION]...\n\n", argv[0]);
-          cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
+          usage(argv);
           return EXIT_SUCCESS;
     }
   }
 
-  // check for a valid sorting algorithm
-  if (!alg_OK) {
-    fprintf(stderr, "%s: missing sorting algorithm.\n", argv[0]);
-    printf("Usage: %s [OPTION]...\n\n", argv[0]);
-    cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
-    cag_option_print_error(&acontext, stderr);
+  // Get sorting algorithm
+  alg = get_sorting_algorithm(argc, argv);
+  if (alg == UNDEFINED_ALGORITHM) {
+    fprintf(stderr, "%s: undefined sorting algorithm.\n", argv[0]);
+    usage(argv);
     return EXIT_FAILURE;
   }
-
   HXT_INFO("sorting algorithm: %s", ((alg == HXT)?("HXT native"):("cut-longest-edge kd-tree")));
 
-  cag_option_context dcontext;
-  cag_option_init(&dcontext, options, CAG_ARRAY_SIZE(options), argc, argv);
-
-  while (cag_option_fetch(&dcontext)) {
-    switch (cag_option_get_identifier(&dcontext)) {
-        case 'a':
-          HXT_INFO("generating points around coordinate axes");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
-          break;
-        case 'd':
-          HXT_INFO("generating points within disk");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
-          break;
-        case 'c':
-          HXT_INFO("generating points within cube");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
-          break;
-        case 'C':
-          HXT_INFO("generating points within cylinder");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
-          break;
-        case 'p':
-          HXT_INFO("generating points around coordinate planes");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
-          break;
-        case 'P':
-          HXT_INFO("generating points around paraboloid");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert( create_nodes(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
-          break;
-        case 's':
-          HXT_INFO("generating points around logarithmic spiral");
-          value = cag_option_get_value(&dcontext);
-          npts = atoi(value);
-          assert(create_nodes(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
-          break;
-    }
-  }
-  mesh->num_vertices = npts;
-
+  // Create nodes
+  HXT_CHECK( HXT_mesh_create(&mesh) );
   clock_t time0 = clock();
-  // Run the chosen sorting algorithm
+  mesh->num_vertices = create_nodes(argc, argv, mesh);
+  clock_t time1 = clock();
+  printf("Point generation: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
+
+  // Run the spatial sorting algorithm
   switch (alg) {
       case HXT:
           HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
@@ -310,14 +327,14 @@ int main(int argc, char **argv)
       default:
           break;
   }
-  clock_t time1 = clock();
-  printf("BRIO: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
+  clock_t time2 = clock();
+  printf("BRIO: %f s\n", (double) (time2-time1) / CLOCKS_PER_SEC);
 
   // this is were we are really doing the delaunay...
   HXT_CHECK( HXT_tetrahedra_compute(mesh) );
 
-  clock_t time2 = clock();
-  printf("Delaunay insertion: %f s\n", (double) (time2-time1) / CLOCKS_PER_SEC);
+  clock_t time3 = clock();
+  printf("Delaunay insertion: %f s\n", (double) (time3-time2) / CLOCKS_PER_SEC);
 
   uint64_t numGhosts = 0;
   for(uint64_t i=0; i<mesh->tetrahedra.num; i++) {
