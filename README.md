@@ -1,5 +1,4 @@
 # Spatial-kd-tree-sorting
-Experimental analysis of spatial kd-tree sorting schemes
 
 A maioria dos fenômenos naturais que conhecemos pode ser expresso hoje em dia por equações diferenciais parciais. Quando definidas sobre domínios e condições iniciais e de contorno simples, muitas vezes é possível calcular a solução exata. Mas a verdade é que sempre recorremos a soluções aproximadas toda vez que lidamos com simulações realistas. O método dos elementos finitos é a técnica mais utilizada para obter soluções aproximadas de equações diferenciais parciais. A ideia fundamental desse método é subdividir o domínio em pedaços menores sobre os quais são calculadas aproximações locais que, posteriormente, são combinadas para montar a solução global do problema. Esses "pedaços", denominados elementos, geralmente possuem a forma de triângulos e quadriláteros em 2D e tetraedros, cubos e pirâmides em 3D. Juntos, eles formam o que conhecemos como malha.
 
