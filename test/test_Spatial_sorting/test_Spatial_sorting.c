@@ -23,6 +23,8 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 #include <string.h>
 #include <assert.h>
 
+#include <math.h>
+
 #include <cargs.h>
 
 #include <kdt_vertices.h>
@@ -198,6 +200,32 @@ void __points_within_cube(vertex_t** vertices_p, uint32_t npts)
   }
 }
 
+void __points_within_cylinder(vertex_t** vertices_p, uint32_t npts)
+{
+    double R = 1.0; // ray
+    double h = 2.0; // height
+
+    for (uint32_t i = 0; i < npts; i++) {
+        double theta = 2 * M_PI * ((double)rand() / RAND_MAX);
+        double r = R * sqrt((double)rand() / RAND_MAX);
+        double x = r * sin(theta);
+        double y = r * cos(theta);
+        double z = h * (((double)rand() / RAND_MAX) - 0.5);
+
+        // add gaussian noise
+        double sdx = 1e-2; // standard deviation in x
+        double sdy = 1e-2; // standard deviation in y
+        double sdz = 1e-2; // standard deviation in z
+        x += sdx * ((double)rand() / RAND_MAX);
+        y += sdy * ((double)rand() / RAND_MAX);
+        z += sdz * ((double)rand() / RAND_MAX);
+
+        (*vertices_p)[i].coord[0] = x;
+        (*vertices_p)[i].coord[1] = y;
+        (*vertices_p)[i].coord[2] = z;
+    }
+}
+
 status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
   uint32_t n;
@@ -212,7 +240,8 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
           __points_within_cube(vertices_p, npts);
           break;
       case CYLINDER:
-          return HXT_STATUS_FAILED;
+          __points_within_cylinder(vertices_p, npts);
+          break;
       case DISK:
           return HXT_STATUS_FAILED;
       case PLANES:
