@@ -226,6 +226,38 @@ void __points_within_cylinder(vertex_t** vertices_p, uint32_t npts)
     }
 }
 
+void __points_within_planes(vertex_t** vertices_p, uint32_t npts)
+{
+    double sdx = 1e-2; // standard deviation in x
+    double sdy = 1e-2; // standard deviation in y
+    double sdz = 1e-2; // standard deviation in z
+
+    uint32_t n_xy = npts / 3;
+    uint32_t n_yz = npts / 3;
+    uint32_t n_zx = npts - n_xy - n_yz;
+
+    // plane points xy
+    for (uint32_t i = 0; i < n_xy; i++) {
+        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdx;
+        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdy;
+        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) * sdz;
+    }
+
+    // plane points yz
+    for (uint32_t i = n_xy; i < n_xy + n_yz; i++) {
+        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) * sdx;
+        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdy;
+        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdz;
+    }
+
+    // plane points zx
+    for (uint32_t i = n_xy + n_yz; i < npts; i++) {
+        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdx;
+        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) * sdy;
+        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdz;
+    }
+}
+
 status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
   uint32_t n;
@@ -245,7 +277,8 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
       case DISK:
           return HXT_STATUS_FAILED;
       case PLANES:
-          return HXT_STATUS_FAILED;
+          __points_within_planes(vertices_p, npts);
+          break;
       case PARABOLOID:
           return HXT_STATUS_FAILED;
       case SPIRAL:
