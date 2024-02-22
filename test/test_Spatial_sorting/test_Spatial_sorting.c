@@ -284,6 +284,35 @@ void __points_within_paraboloid(vertex_t** vertices_p, uint32_t npts)
     }
 }
 
+void __points_within_spiral(vertex_t** vertices_p, uint32_t npts)
+{
+    double a = 0.25 / M_PI;
+    double b = 300.0;
+
+    for (uint32_t i = 0; i < npts; i++) {
+        double u0 = ((double)i / (npts - 1)) * (b - a) + a;
+        double theta = 2 * M_PI * sqrt(u0);
+        double alpha = 1.0;
+        double beta = 0.01;
+        double gamma = 1.0;
+        double x = alpha * theta * exp(beta * theta) * sin(theta);
+        double y = alpha * theta * exp(beta * theta) * cos(theta);
+        double z = gamma * theta;
+
+        // add gaussian noise
+        double sdx = 5e-1; // standard deviation in x
+        double sdy = 5e-1; // standard deviation in y
+        double sdz = 1e0;  // standard deviation in z
+        x += sdx * ((double)rand() / RAND_MAX);
+        y += sdy * ((double)rand() / RAND_MAX);
+        z += sdz * ((double)rand() / RAND_MAX);
+
+        (*vertices_p)[i].coord[0] = x;
+        (*vertices_p)[i].coord[1] = y;
+        (*vertices_p)[i].coord[2] = z;
+    }
+}
+
 status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
   uint32_t n;
@@ -309,7 +338,8 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
           __points_within_paraboloid(vertices_p, npts);
           break;
       case SPIRAL:
-          return HXT_STATUS_FAILED;
+          __points_within_spiral(vertices_p, npts);
+          break;
       default:
           return HXT_STATUS_FAILED;
   }
