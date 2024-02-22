@@ -157,6 +157,38 @@ status_t gmshTetDraw(mesh_t* mesh, const char* filename)
   return HXT_STATUS_OK;
 }
 
+void __points_within_axes(vertex_t** vertices_p, uint32_t npts)
+{
+    double sdx = 1e-2; // standard deviation
+    double sdy = 1e-2;
+    double sdz = 1e-2;
+
+    uint32_t n_xy = npts / 3;
+    uint32_t n_yz = npts / 3;
+    uint32_t n_zx = npts - n_xy - n_yz;
+
+    // Points on the plane xy
+    for (uint32_t i = 0; i < n_xy; i++) {
+        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdx;
+        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) * sdy;
+        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) * sdz;
+    }
+
+    // Points on the plane yz
+    for (uint32_t i = n_xy; i < n_xy + n_yz; i++) {
+        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) * sdx;
+        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdy;
+        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) * sdz;
+    }
+
+    // Points on the plane zx
+    for (uint32_t i = n_xy + n_yz; i < npts; i++) {
+        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) * sdx;
+        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) * sdy;
+        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdz;
+    }
+}
+
 void __points_within_cube(vertex_t** vertices_p, uint32_t npts)
 {
     for (uint32_t i=0; i<npts; i++) {
@@ -174,7 +206,8 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
 
   switch (d) {
       case AXES:
-          return HXT_STATUS_FAILED;
+            __points_within_axes(vertices_p, npts);
+            break;
       case CUBE:
           __points_within_cube(vertices_p, npts);
           break;
