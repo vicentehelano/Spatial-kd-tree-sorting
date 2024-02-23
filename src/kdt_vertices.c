@@ -21,132 +21,8 @@ Author: Rafael Vanali (email@user.com)                                      */
 
 #include <kdt_vertices.h>
 
-// Função para trocar dois vértices
-void __swapVertices( vertex_t *a, vertex_t *b )
-{
-	vertex_t temp = *a;
-	*a = *b;
-	*b = temp;
-}
-
-// Função para selecionar um pivô aleatório e particionar os pontos
-int __partition(vertex_t* vertices, int left, int right, int axis)
-{
-	// Seleciona um pivô aleatório
-	int pivotIndex = left + rand() % (right - left + 1);
-	vertex_t pivot = vertices[pivotIndex];
-
-	// Move o pivô para o final do array temporariamente
-	__swapVertices(&vertices[pivotIndex], &vertices[right]);
-
-	// Particiona os pontos em torno do pivô
-	int i = left - 1;
-	for (int j = left; j < right; j++)
-	{
-		if (vertices[j].coord[axis] <= pivot.coord[axis])
-		{
-			i++;
-			__swapVertices(&vertices[i], &vertices[j]);
-		}
-	}
-
-	__swapVertices(&vertices[i + 1], &vertices[right]); // Move o pivô de volta para a posição correta
-
-	return i + 1;
-}
-
-// Função para encontrar a mediana dos pontos
-void __quick_select(vertex_t* vertices, int n, int k, int axis)
-{
-	int left = 0;
-	int right = n - 1;
-	while (left <= right)
-	{
-		int pivot_Index = __partition(vertices, left, right, axis);
-
-		if (pivot_Index == k) // A mediana foi encontrada
-			return;
-
-		else if (pivot_Index < k)
-			left = pivot_Index + 1;
-
-		else
-			right = pivot_Index - 1;
-	}
-}
-
-kd_node_t *__KDT_vertices_build_kdtree(int axis, vertex_t* vertices, const uint32_t n)
-{
-	if ( n == 0 )
-		return NULL;
-
-	// Calcula a mediana usando o algoritmo de seleção de mediana
-	int median = n / 2;
-
-	__quick_select(vertices, n, median, axis);
-
-	// Cria o nó atual
-	kd_node_t *no = (kd_node_t*) malloc(sizeof(kd_node_t));
-	if (no == NULL)
-	{
-		fprintf(stderr, "Falha na alocação de memória\n");
-		exit(1);
-	}
-
-	no->vertex = &vertices[median];
-	no->axis = axis;
-
-	// Calcula a nova dimensão para a próxima divisão
-	int next_axis = (axis + 1) % 3;
-
-	// Constrói de forma recursiva a subárvore esquerda
-	no->esquerdo = __KDT_vertices_build_kdtree(next_axis, vertices, median);
-
-	// Constrói de forma recursiva a subárvore direita
-	no->direito = __KDT_vertices_build_kdtree(next_axis, vertices + median + 1, n - median - 1);
-
-	return no;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-kd_node_t *KDT_vertices_build_kdtree( bbox_t* bbox, vertex_t* vertices, const uint32_t n )
-{
-	return __KDT_vertices_build_kdtree(0, vertices, n);
-}
+#define MAX3_IDX(a,b,c) (((a) > (b))?(((a) > (c))?0:2):(((b) > (c))?1:2))
+#define MIN3_IDX(a,b,c) (((a) < (b))?(((a) < (c))?0:2):(((b) < (c))?1:2))
 
 // Função para criar uma fila vazia
 Queue* createQueue()
@@ -247,11 +123,118 @@ static status_t __KDT_vertices_breadth_first_sort( vertex_t* const __restrict__ 
 	return HXT_STATUS_OK;
 }
 
-// Função PRINCIPAL para ordenar o array de vertices usando a árvore KD
-static status_t KDT_vertices_sort( vertex_t* const __restrict__ array, const uint32_t n )
+// Função para trocar dois vértices
+void __swapVertices( vertex_t *a, vertex_t *b )
 {
-	bbox_t bbox;
-    kd_node_t* raiz = KDT_vertices_build_kdtree(&bbox, array, n); // Construa a árvore KD
+	double tmp[3];
+    memcpy(tmp,  a->coord, sizeof(tmp));
+    memcpy(a->coord, b->coord, sizeof(tmp));
+    memcpy(b->coord, tmp,  sizeof(tmp));
+}
+
+// Função para selecionar um pivô aleatório e particionar os pontos
+int __partition(vertex_t* vertices, int left, int right, int axis)
+{
+	// Seleciona um pivô aleatório
+	int pivotIndex = left + rand() % (right - left + 1);
+	vertex_t pivot = vertices[pivotIndex];
+
+	// Move o pivô para o final do array temporariamente
+	__swapVertices(&vertices[pivotIndex], &vertices[right]);
+
+	// Particiona os pontos em torno do pivô
+	int i = left - 1;
+	for (int j = left; j < right; j++)
+	{
+		if (vertices[j].coord[axis] <= pivot.coord[axis])
+		{
+			i++;
+			__swapVertices(&vertices[i], &vertices[j]);
+		}
+	}
+
+	__swapVertices(&vertices[i + 1], &vertices[right]); // Move o pivô de volta para a posição correta
+
+	return i + 1;
+}
+
+// Função para encontrar a mediana dos pontos
+void __quick_select(vertex_t* vertices, int n, int k, int axis)
+{
+	int left = 0;
+	int right = n - 1;
+	while (left <= right)
+	{
+		int pivot_Index = __partition(vertices, left, right, axis);
+
+		if (pivot_Index == k) // A mediana foi encontrada
+			return;
+
+		else if (pivot_Index < k)
+			left = pivot_Index + 1;
+
+		else
+			right = pivot_Index - 1;
+	}
+}
+
+int get_splitting_axis(bbox_t bbox)
+{
+    double dx = bbox.max[0] - bbox.min[0];
+    double dy = bbox.max[1] - bbox.min[1];
+    double dz = bbox.max[2] - bbox.min[2];
+    return MAX3_IDX(dx,dy,dz);
+}
+
+kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const uint32_t n)
+{
+	if ( n == 0 )
+		return NULL;
+
+	// Calcula a mediana usando o algoritmo de seleção de mediana
+	int median = n / 2;
+
+	// Determina a direção com maior variação
+	int axis = get_splitting_axis(bbox);
+
+	__quick_select(vertices, n, median, axis);
+
+	// Cria o nó atual
+	kd_node_t *no = (kd_node_t*) malloc(sizeof(kd_node_t));
+	if (no == NULL)
+	{
+		fprintf(stderr, "Falha na alocação de memória\n");
+		exit(1);
+	}
+
+	no->vertex = &vertices[median];
+	//no->axis = axis;
+
+	// Calcula os bounding boxes dos retangulos esquerdo e direito
+	bbox_t left_bbox  = bbox;
+	bbox_t right_bbox = bbox;
+
+    left_bbox.max[axis]  = no->vertex->coord[axis];
+    right_bbox.min[axis] = no->vertex->coord[axis];
+
+	// Constrói de forma recursiva a subárvore esquerda
+	no->esquerdo = __KDT_vertices_build_kdtree(left_bbox, vertices, median);
+
+	// Constrói de forma recursiva a subárvore direita
+	no->direito = __KDT_vertices_build_kdtree(right_bbox, vertices + median + 1, n - median - 1);
+
+	return no;
+}
+
+kd_node_t *KDT_vertices_build_kdtree( bbox_t bbox, vertex_t* vertices, const uint32_t n )
+{
+	return __KDT_vertices_build_kdtree(bbox, vertices, n);
+}
+
+// Função PRINCIPAL para ordenar o array de vertices usando a árvore KD
+static status_t KDT_vertices_sort( bbox_t bbox, vertex_t* const __restrict__ array, const uint32_t n )
+{
+    kd_node_t* raiz = KDT_vertices_build_kdtree(bbox, array, n); // Construa a árvore KD
 
     // Verifica se a árvore KD foi construída correntamente
 	if ( raiz == NULL )
@@ -269,9 +252,9 @@ static status_t KDT_vertices_sort( vertex_t* const __restrict__ array, const uin
     return HXT_STATUS_OK;
 }
 
-status_t KDT_vertices_BRIO( bbox_t* bbox, vertex_t* vertices, const uint32_t n )
+status_t KDT_vertices_BRIO( bbox_t bbox, vertex_t* vertices, const uint32_t n )
 {
-	status_t sortStatus = KDT_vertices_sort( vertices, n );
+	status_t sortStatus = KDT_vertices_sort( bbox, vertices, n );
 	if ( sortStatus != HXT_STATUS_OK )
 		return sortStatus;
 

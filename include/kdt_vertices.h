@@ -27,7 +27,7 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 // Estrutura que representa uma árvore-KD.
 typedef struct kd_node_t_struct {
 	vertex_t* vertex;				        // Ponto associado ao nó da árvore.
-	int axis;			                    // Campo que indica a dimensão pela qual a árvore KD divide o conjunto de pontos.
+	//int axis;			                    // Campo que indica a dimensão pela qual a árvore KD divide o conjunto de pontos.
 	struct kd_node_t_struct *esquerdo;		// Ponteiro para o filho esquerdo da Árvore KD.
 	struct kd_node_t_struct *direito;		// Ponteiro para o filho direito da Árvore KD.
 } kd_node_t;
@@ -45,6 +45,6 @@ typedef struct {
 } Queue;
 
 /* biased randomized insertion order using a kd-tree */
-status_t KDT_vertices_BRIO(bbox_t* bbox, vertex_t* vertices, uint32_t n);
+status_t KDT_vertices_BRIO(bbox_t bbox, vertex_t* vertices, uint32_t n);
 
 #endif

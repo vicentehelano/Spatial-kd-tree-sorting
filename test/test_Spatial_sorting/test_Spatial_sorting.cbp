@@ -13,10 +13,11 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-fopenmp -DDEBUG" />
+					<Add option="-DDEBUG" />
 					<Add directory="../../include" />
 					<Add directory="../../lib/hxt_seqdel/src" />
 					<Add directory="../../lib/cargs/include" />
+					<Add directory="../../lib/testingRNG/source" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -26,6 +27,10 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add directory="../../include" />
+					<Add directory="../../lib/cargs/include" />
+					<Add directory="../../lib/hxt_seqdel/src" />
+					<Add directory="../../lib/testingRNG/source" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -53,6 +58,33 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../lib/hxt_seqdel/src/predicates.h" />
+		<Unit filename="../../lib/testingRNG/source/CG128-64.h" />
+		<Unit filename="../../lib/testingRNG/source/CG128.h" />
+		<Unit filename="../../lib/testingRNG/source/CG64.h" />
+		<Unit filename="../../lib/testingRNG/source/aesctr.h" />
+		<Unit filename="../../lib/testingRNG/source/aesdragontamer.h" />
+		<Unit filename="../../lib/testingRNG/source/jenkinssmall.h" />
+		<Unit filename="../../lib/testingRNG/source/lehmer64.h" />
+		<Unit filename="../../lib/testingRNG/source/mersennetwister.h" />
+		<Unit filename="../../lib/testingRNG/source/mitchellmoore.h" />
+		<Unit filename="../../lib/testingRNG/source/pcg32.h" />
+		<Unit filename="../../lib/testingRNG/source/pcg64.h" />
+		<Unit filename="../../lib/testingRNG/source/splitmix63.h" />
+		<Unit filename="../../lib/testingRNG/source/splitmix64.h" />
+		<Unit filename="../../lib/testingRNG/source/trivium32.h" />
+		<Unit filename="../../lib/testingRNG/source/trivium64.h" />
+		<Unit filename="../../lib/testingRNG/source/util64bits32bits.h" />
+		<Unit filename="../../lib/testingRNG/source/widynski.h" />
+		<Unit filename="../../lib/testingRNG/source/wyhash.h" />
+		<Unit filename="../../lib/testingRNG/source/wyrand.h" />
+		<Unit filename="../../lib/testingRNG/source/xoroshiro128plus.h" />
+		<Unit filename="../../lib/testingRNG/source/xoroshiro256plusplus.h" />
+		<Unit filename="../../lib/testingRNG/source/xorshift-k4.h" />
+		<Unit filename="../../lib/testingRNG/source/xorshift-k5.h" />
+		<Unit filename="../../lib/testingRNG/source/xorshift1024plus.h" />
+		<Unit filename="../../lib/testingRNG/source/xorshift1024star.h" />
+		<Unit filename="../../lib/testingRNG/source/xorshift128plus.h" />
+		<Unit filename="../../lib/testingRNG/source/xorshift32.h" />
 		<Unit filename="../../src/kdt_vertices.c">
 			<Option compilerVar="CC" />
 		</Unit>

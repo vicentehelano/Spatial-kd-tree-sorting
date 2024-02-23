@@ -26,8 +26,15 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 #include <math.h>
 
 #include <cargs.h>
+#include <xoroshiro256plusplus.h>
 
 #include <kdt_vertices.h>
+
+static inline void thisrng_seed(uint64_t seed) {  }
+
+static inline uint64_t thisrng() { return xoroshiro128plus(); }
+
+const char *name = "xoroshiro128plus";
 
 typedef enum point_distribution {
   AXES,
@@ -171,32 +178,32 @@ void __points_within_axes(vertex_t** vertices_p, uint32_t npts)
 
     // Points on the plane xy
     for (uint32_t i = 0; i < n_xy; i++) {
-        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdx;
-        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) * sdy;
-        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) * sdz;
+        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdx;
+        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() * sdy;
+        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() * sdz;
     }
 
     // Points on the plane yz
     for (uint32_t i = n_xy; i < n_xy + n_yz; i++) {
-        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) * sdx;
-        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdy;
-        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) * sdz;
+        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() * sdx;
+        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdy;
+        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() * sdz;
     }
 
     // Points on the plane zx
     for (uint32_t i = n_xy + n_yz; i < npts; i++) {
-        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) * sdx;
-        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) * sdy;
-        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdz;
+        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() * sdx;
+        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() * sdy;
+        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdz;
     }
 }
 
 void __points_within_cube(vertex_t** vertices_p, uint32_t npts)
 {
     for (uint32_t i=0; i<npts; i++) {
-    (*vertices_p)[i].coord[0] = (double) rand()/RAND_MAX;
-    (*vertices_p)[i].coord[1] = (double) rand()/RAND_MAX;
-    (*vertices_p)[i].coord[2] = (double) rand()/RAND_MAX;
+    (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d();
+    (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d();
+    (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d();
   }
 }
 
@@ -206,19 +213,19 @@ void __points_within_cylinder(vertex_t** vertices_p, uint32_t npts)
     double h = 2.0; // height
 
     for (uint32_t i = 0; i < npts; i++) {
-        double theta = 2 * M_PI * ((double)rand() / RAND_MAX);
-        double r = R * sqrt((double)rand() / RAND_MAX);
+        double theta = 2 * M_PI * xoroshiro256plusplus_d();
+        double r = R * sqrt(xoroshiro256plusplus_d());
         double x = r * sin(theta);
         double y = r * cos(theta);
-        double z = h * (((double)rand() / RAND_MAX) - 0.5);
+        double z = h * (xoroshiro256plusplus_d() - 0.5);
 
         // add gaussian noise
         double sdx = 1e-2; // standard deviation in x
         double sdy = 1e-2; // standard deviation in y
         double sdz = 1e-2; // standard deviation in z
-        x += sdx * ((double)rand() / RAND_MAX);
-        y += sdy * ((double)rand() / RAND_MAX);
-        z += sdz * ((double)rand() / RAND_MAX);
+        x += sdx * xoroshiro256plusplus_d();
+        y += sdy * xoroshiro256plusplus_d();
+        z += sdz * xoroshiro256plusplus_d();
 
         (*vertices_p)[i].coord[0] = x;
         (*vertices_p)[i].coord[1] = y;
@@ -238,23 +245,23 @@ void __points_within_planes(vertex_t** vertices_p, uint32_t npts)
 
     // plane points xy
     for (uint32_t i = 0; i < n_xy; i++) {
-        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdx;
-        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdy;
-        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) * sdz;
+        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdx;
+        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdy;
+        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() * sdz;
     }
 
     // plane points yz
     for (uint32_t i = n_xy; i < n_xy + n_yz; i++) {
-        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) * sdx;
-        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdy;
-        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdz;
+        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() * sdx;
+        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdy;
+        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdz;
     }
 
     // plane points zx
     for (uint32_t i = n_xy + n_yz; i < npts; i++) {
-        (*vertices_p)[i].coord[0] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdx;
-        (*vertices_p)[i].coord[1] = ((double)rand() / RAND_MAX) * sdy;
-        (*vertices_p)[i].coord[2] = ((double)rand() / RAND_MAX) + ((double)rand() / RAND_MAX) * sdz;
+        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdx;
+        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() * sdy;
+        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + xoroshiro256plusplus_d() * sdz;
     }
 }
 
@@ -264,8 +271,8 @@ void __points_within_paraboloid(vertex_t** vertices_p, uint32_t npts)
     double h = 1.0; // heigth
 
     for (uint32_t i = 0; i < npts; i++) {
-        double theta = 2 * M_PI * ((double)rand() / RAND_MAX);
-        double r = R * sqrt((double)rand() / RAND_MAX);
+        double theta = 2 * M_PI * xoroshiro256plusplus_d();
+        double r = R * sqrt(xoroshiro256plusplus_d());
         double x = r * sin(theta);
         double y = r * cos(theta);
         double z = pow(x, 2) + pow(y, 2);
@@ -274,9 +281,9 @@ void __points_within_paraboloid(vertex_t** vertices_p, uint32_t npts)
         double sdx = 1e-2; // standard deviation in x
         double sdy = 1e-2; // standard deviation in y
         double sdz = 1e-2; // standard deviation in z
-        x += sdx * ((double)rand() / RAND_MAX);
-        y += sdy * ((double)rand() / RAND_MAX);
-        z += sdz * ((double)rand() / RAND_MAX);
+        x += sdx * xoroshiro256plusplus_d();
+        y += sdy * xoroshiro256plusplus_d();
+        z += sdz * xoroshiro256plusplus_d();
 
         (*vertices_p)[i].coord[0] = x;
         (*vertices_p)[i].coord[1] = y;
@@ -303,9 +310,9 @@ void __points_within_spiral(vertex_t** vertices_p, uint32_t npts)
         double sdx = 5e-1; // standard deviation in x
         double sdy = 5e-1; // standard deviation in y
         double sdz = 1e0;  // standard deviation in z
-        x += sdx * ((double)rand() / RAND_MAX);
-        y += sdy * ((double)rand() / RAND_MAX);
-        z += sdz * ((double)rand() / RAND_MAX);
+        x += sdx * xoroshiro256plusplus_d();
+        y += sdy * xoroshiro256plusplus_d();
+        z += sdz * xoroshiro256plusplus_d();
 
         (*vertices_p)[i].coord[0] = x;
         (*vertices_p)[i].coord[1] = y;
@@ -441,6 +448,7 @@ int main(int argc, char **argv)
   mesh_t* mesh;
   Sorting_algorithm alg = -1;
   cag_option_context context;
+  uint64_t default_seed = 1234567890ULL;
 
   // Grab help menu
   cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
@@ -464,6 +472,7 @@ int main(int argc, char **argv)
   // Create nodes
   HXT_CHECK( HXT_mesh_create(&mesh) );
   clock_t time0 = clock();
+  xoroshiro256plusplus_seed(default_seed);
   mesh->num_vertices = create_nodes(argc, argv, mesh);
   clock_t time1 = clock();
   printf("Point generation: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
@@ -471,10 +480,10 @@ int main(int argc, char **argv)
   // Run the spatial sorting algorithm
   switch (alg) {
       case HXT:
-          HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+          HXT_CHECK( HXT_vertices_BRIO(mesh->bbox, mesh->vertices, mesh->num_vertices) );
           break;
       case KDT:
-          HXT_CHECK( KDT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
+          HXT_CHECK( KDT_vertices_BRIO(mesh->bbox, mesh->vertices, mesh->num_vertices) );
           break;
       default:
           break;
@@ -494,6 +503,8 @@ int main(int argc, char **argv)
       numGhosts++;
   }
   printf("%u vertices, %lu Delaunay tetrahedra, %lu ghosts, %f s\n", mesh->num_vertices, mesh->tetrahedra.num - numGhosts, numGhosts, (double) (time2-time0)/CLOCKS_PER_SEC);
+
+  gmshTetDraw(mesh, "output.msh");
 
   HXT_CHECK( HXT_mesh_delete(&mesh) );
 
