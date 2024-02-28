@@ -159,26 +159,33 @@ int __partition(vertex_t* vertices, int left, int right, int axis)
 }
 
 // Função para encontrar a mediana dos pontos
-void __quick_select(vertex_t* vertices, int n, int k, int axis)
+uint64_t __KDT_cut_along_axis(vertex_t* vertices, uint64_t n, int axis)
 {
-	int left = 0;
-	int right = n - 1;
-	while (left <= right)
-	{
-		int pivot_Index = __partition(vertices, left, right, axis);
+	uint64_t left  = 0;
+	uint64_t right = n - 1;
+	uint64_t k  = n/2;
+	uint64_t pivot_Index;
 
-		if (pivot_Index == k) // A mediana foi encontrada
-			return;
+	while (left < right) {
+		pivot_Index = __partition(vertices, left, right, axis);
 
-		else if (pivot_Index < k)
-			left = pivot_Index + 1;
-
-		else
+		uint64_t length = pivot_Index - left + 1;
+		if (length == k) {// A mediana foi encontrada
+			return pivot_Index;
+		} else if (k < length) // median is on the pivot's left
 			right = pivot_Index - 1;
+		else {
+			left = pivot_Index + 1;
+			k -= length;
+		}
 	}
+
+	if (left == right) {
+        return left;
+    }
 }
 
-int get_splitting_axis(bbox_t bbox)
+int __KDT_get_longest_axis(bbox_t bbox)
 {
     double dx = bbox.max[0] - bbox.min[0];
     double dy = bbox.max[1] - bbox.min[1];
@@ -191,13 +198,11 @@ kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const ui
 	if ( n == 0 )
 		return NULL;
 
-	// Calcula a mediana usando o algoritmo de seleção de mediana
-	int median = n / 2;
-
 	// Determina a direção com maior variação
-	int axis = get_splitting_axis(bbox);
+	int axis = __KDT_get_longest_axis(bbox);
 
-	__quick_select(vertices, n, median, axis);
+    // Calcula a mediana usando o algoritmo de seleção de mediana
+	int median = __KDT_cut_along_axis(vertices, n, axis);
 
 	// Cria o nó atual
 	kd_node_t *no = (kd_node_t*) malloc(sizeof(kd_node_t));
