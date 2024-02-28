@@ -314,6 +314,20 @@ void __points_within_spiral(vertex_t** vertices_p, uint32_t npts)
     }
 }
 
+void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
+{
+    bbox->min[0] = (*vertices_p)[0].coord[0];
+    bbox->min[1] = (*vertices_p)[0].coord[1];
+    bbox->min[2] = (*vertices_p)[0].coord[2];
+    bbox->max[0] = (*vertices_p)[0].coord[0];
+    bbox->max[1] = (*vertices_p)[0].coord[1];
+    bbox->max[2] = (*vertices_p)[0].coord[2];
+
+    for (uint32 i = 1; i < npts; i++) {
+        // calcular xmin, xmax, ymin, ymax, zmin, zmax aqui
+    }
+}
+
 status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
   uint32_t n;
@@ -350,12 +364,7 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
   // CALCULAR O BOUNDING BOX MANUALMENTE,
   // USANDO UMA FUNÇÃO AUXILIAR: __get_bounding_box(...)
   // Compute bounding box
-  bbox->min[0] = 0.0;
-  bbox->min[1] = 0.0;
-  bbox->min[2] = 0.0;
-  bbox->max[0] = 1.0;
-  bbox->max[1] = 1.0;
-  bbox->max[2] = 1.0;
+  __get_bounding_box(bbox, vertices_p, npts);
 
   return HXT_STATUS_OK;
 }
