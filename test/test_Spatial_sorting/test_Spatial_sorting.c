@@ -323,7 +323,7 @@ void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
     bbox->max[1] = (*vertices_p)[0].coord[1];
     bbox->max[2] = (*vertices_p)[0].coord[2];
 
-    for (uint32 i = 1; i < npts; i++) {
+    for (uint32_t i = 1; i < npts; i++) {
         // calcular xmin, xmax, ymin, ymax, zmin, zmax aqui
     }
 }
