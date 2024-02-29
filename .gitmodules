@@ -5,6 +5,3 @@
 	path = lib/cargs
 	url = https://github.com/likle/cargs.git
 	branch = stable
-[submodule "lib/testingRNG"]
-	path = lib/testingRNG
-	url = https://github.com/vicentehelano/testingRNG.git
