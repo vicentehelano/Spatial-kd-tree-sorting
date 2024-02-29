@@ -5,4 +5,4 @@
 *.depend
 test/test_Spatial_sorting/bin/Release/cube.msh
 *.msh
-lib/hxt_seqdel
+test/test_Spatial_sorting/bin

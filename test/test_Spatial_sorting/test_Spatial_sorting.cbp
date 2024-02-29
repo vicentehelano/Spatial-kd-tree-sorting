@@ -40,6 +40,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Linker>
+			<Add option="-lm" />
+		</Linker>
 		<Unit filename="../../include/kdt_vertices.h" />
 		<Unit filename="../../lib/cargs/include/cargs.h" />
 		<Unit filename="../../lib/cargs/src/cargs.c">
