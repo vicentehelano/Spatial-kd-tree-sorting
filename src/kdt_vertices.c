@@ -93,7 +93,7 @@ void __destroyQueue(Queue* queue)
 }
 
 // Função para ordenar em largura a partir da árvore KD diretamente no array
-static status_t __KDT_vertices_breadth_first_sort( vertex_t* const __restrict__ array, const uint32_t n, kd_node_t* raiz )
+static status_t __KDT_vertices_breadth_first_sort( vertex_t* const __restrict__ array, kd_node_t* raiz )
 {
 	if ( raiz == NULL )
 		return HXT_STATUS_ERROR;
@@ -183,6 +183,9 @@ uint64_t __KDT_cut_along_axis(vertex_t* vertices, uint64_t n, int axis)
 	if (left == right) {
         return left;
     }
+
+    fprintf(stderr, "cut-longest-edge failed.\n");
+	return -1;
 }
 
 int __KDT_get_longest_axis(bbox_t bbox)
@@ -249,7 +252,7 @@ static status_t KDT_vertices_sort( bbox_t bbox, vertex_t* const __restrict__ arr
     HXT_CHECK(
             HXT_malloc( &buffer, n*sizeof( vertex_t )));
 
-    __KDT_vertices_breadth_first_sort(buffer, n, raiz);
+    __KDT_vertices_breadth_first_sort(buffer, raiz);
 
     memcpy(array, buffer, n*sizeof(vertex_t));
 
