@@ -28,6 +28,7 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 #include <cargs.h>
 #include <xoroshiro256plusplus.h>
 
+#include <hxt_vertices.h>
 #include <kdt_vertices.h>
 
 typedef enum point_distribution {
@@ -166,26 +167,24 @@ void __points_within_axes(vertex_t** vertices_p, uint32_t npts)
     double sdy = 1e-2;
     double sdz = 1e-2;
 
-    uint32_t n_xy = npts / 3;
-    uint32_t n_yz = npts / 3;
-    uint32_t n_zx = npts - n_xy - n_yz;
+    uint32_t third = npts / 3;
 
     // Points on the plane xy
-    for (uint32_t i = 0; i < n_xy; i++) {
+    for (uint32_t i = 0; i < third; i++) {
         (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdx;
         (*vertices_p)[i].coord[1] = nxoroshiro256plusplus_d() * sdy;
         (*vertices_p)[i].coord[2] = nxoroshiro256plusplus_d() * sdz;
     }
 
     // Points on the plane yz
-    for (uint32_t i = n_xy; i < n_xy + n_yz; i++) {
+    for (uint32_t i = third; i < 2*third; i++) {
         (*vertices_p)[i].coord[0] = nxoroshiro256plusplus_d() * sdx;
         (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdy;
         (*vertices_p)[i].coord[2] = nxoroshiro256plusplus_d() * sdz;
     }
 
     // Points on the plane zx
-    for (uint32_t i = n_xy + n_yz; i < npts; i++) {
+    for (uint32_t i = 2*third; i < npts; i++) {
         (*vertices_p)[i].coord[0] = nxoroshiro256plusplus_d() * sdx;
         (*vertices_p)[i].coord[1] = nxoroshiro256plusplus_d() * sdy;
         (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdz;
@@ -232,26 +231,24 @@ void __points_within_planes(vertex_t** vertices_p, uint32_t npts)
     double sdy = 1e-2; // standard deviation in y
     double sdz = 1e-2; // standard deviation in z
 
-    uint32_t n_xy = npts / 3;
-    uint32_t n_yz = npts / 3;
-    uint32_t n_zx = npts - n_xy - n_yz;
+    uint32_t third = npts / 3;
 
     // plane points xy
-    for (uint32_t i = 0; i < n_xy; i++) {
+    for (uint32_t i = 0; i < third; i++) {
         (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdx;
         (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdy;
         (*vertices_p)[i].coord[2] = nxoroshiro256plusplus_d() * sdz;
     }
 
     // plane points yz
-    for (uint32_t i = n_xy; i < n_xy + n_yz; i++) {
+    for (uint32_t i = third; i < 2*third; i++) {
         (*vertices_p)[i].coord[0] = nxoroshiro256plusplus_d() * sdx;
         (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdy;
         (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdz;
     }
 
     // plane points zx
-    for (uint32_t i = n_xy + n_yz; i < npts; i++) {
+    for (uint32_t i = 2*third; i < npts; i++) {
         (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdx;
         (*vertices_p)[i].coord[1] = nxoroshiro256plusplus_d() * sdy;
         (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdz;
@@ -261,7 +258,6 @@ void __points_within_planes(vertex_t** vertices_p, uint32_t npts)
 void __points_within_paraboloid(vertex_t** vertices_p, uint32_t npts)
 {
     double R = 1.0; // ray
-    double h = 1.0; // heigth
 
     for (uint32_t i = 0; i < npts; i++) {
         double theta = 2 * M_PI * xoroshiro256plusplus_d();
@@ -330,7 +326,6 @@ void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
 
 status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
-  uint32_t n;
   HXT_INFO("creating %u vertices", npts);
   HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
 
@@ -369,7 +364,7 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
   return HXT_STATUS_OK;
 }
 
-uint32_t create_nodes(int argc, const char *argv[], mesh_t *mesh)
+uint32_t create_nodes(int argc, char *argv[], mesh_t *mesh)
 {
   uint32_t npts = 0;
   const char *value = NULL;
@@ -425,7 +420,7 @@ uint32_t create_nodes(int argc, const char *argv[], mesh_t *mesh)
   return npts;
 }
 
-Sorting_algorithm get_sorting_algorithm(int argc, const char *argv[])
+Sorting_algorithm get_sorting_algorithm(int argc, char *argv[])
 {
   cag_option_context context;
   cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
@@ -441,7 +436,7 @@ Sorting_algorithm get_sorting_algorithm(int argc, const char *argv[])
   return UNDEFINED_ALGORITHM;
 }
 
-void usage(const char *argv[])
+void usage(char *argv[])
 {
   printf("Usage: %s [OPTION]...\n\n", argv[0]);
   cag_option_print(options, CAG_ARRAY_SIZE(options), stdout);
@@ -484,7 +479,7 @@ int main(int argc, char **argv)
   // Run the spatial sorting algorithm
   switch (alg) {
       case HXT:
-          HXT_CHECK( HXT_vertices_BRIO(mesh->bbox, mesh->vertices, mesh->num_vertices) );
+          HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
           break;
       case KDT:
           HXT_CHECK( KDT_vertices_BRIO(mesh->bbox, mesh->vertices, mesh->num_vertices) );
