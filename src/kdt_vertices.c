@@ -163,7 +163,7 @@ uint64_t __KDT_cut_along_axis(vertex_t* vertices, uint64_t n, int axis)
 {
 	uint64_t left  = 0;
 	uint64_t right = n - 1;
-	uint64_t k  = n/2;
+	uint64_t k  = (n + n%2)/2;
 	uint64_t pivot_Index;
 
 	while (left < right) {
