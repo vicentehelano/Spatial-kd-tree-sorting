@@ -522,6 +522,9 @@ int main(int argc, char **argv)
   }
   printf("%u vertices, %lu Delaunay tetrahedra, %lu ghosts, %f s\n", mesh->num_vertices, mesh->tetrahedra.num - numGhosts, numGhosts, (double) (time2-time0)/CLOCKS_PER_SEC);
 
+  kd_node_t *root = KDT_vertices_build_kdtree(mesh->bbox, mesh->vertices, mesh->num_vertices, 0);
+  desenha_arvore(root, "arvore.tex");
+
   gmshTetDraw(mesh, "output.msh");
 
   HXT_CHECK( HXT_mesh_delete(&mesh) );

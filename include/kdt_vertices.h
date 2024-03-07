@@ -26,6 +26,7 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 
 // Estrutura que representa uma árvore-KD.
 typedef struct kd_node_t_struct {
+    int id;
 	vertex_t* vertex;				        // Ponto associado ao nó da árvore.
 	//int axis;			                    // Campo que indica a dimensão pela qual a árvore KD divide o conjunto de pontos.
 	struct kd_node_t_struct *esquerdo;		// Ponteiro para o filho esquerdo da Árvore KD.

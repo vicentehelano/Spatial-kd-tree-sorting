@@ -196,7 +196,7 @@ int __KDT_get_longest_axis(bbox_t bbox)
     return MAX3_IDX(dx,dy,dz);
 }
 
-kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const uint32_t n)
+kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const uint32_t n, int *next_id)
 {
 	if ( n == 0 )
 		return NULL;
@@ -216,6 +216,7 @@ kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const ui
 	}
 
 	no->vertex = &vertices[median];
+	no->id = (*next_id)++;
 	//no->axis = axis;
 
 	// Calcula os bounding boxes dos retangulos esquerdo e direito
@@ -226,23 +227,23 @@ kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const ui
     right_bbox.min[axis] = no->vertex->coord[axis];
 
 	// Constrói de forma recursiva a subárvore esquerda
-	no->esquerdo = __KDT_vertices_build_kdtree(left_bbox, vertices, median);
+	no->esquerdo = __KDT_vertices_build_kdtree(left_bbox, vertices, median, next_id);
 
 	// Constrói de forma recursiva a subárvore direita
-	no->direito = __KDT_vertices_build_kdtree(right_bbox, vertices + median + 1, n - median - 1);
+	no->direito = __KDT_vertices_build_kdtree(right_bbox, vertices + median + 1, n - median - 1, next_id);
 
 	return no;
 }
 
-kd_node_t *KDT_vertices_build_kdtree( bbox_t bbox, vertex_t* vertices, const uint32_t n )
+kd_node_t *KDT_vertices_build_kdtree( bbox_t bbox, vertex_t* vertices, const uint32_t n, int *next_id )
 {
-	return __KDT_vertices_build_kdtree(bbox, vertices, n);
+	return __KDT_vertices_build_kdtree(bbox, vertices, n, 0);
 }
 
 // Função PRINCIPAL para ordenar o array de vertices usando a árvore KD
 static status_t KDT_vertices_sort( bbox_t bbox, vertex_t* const __restrict__ array, const uint32_t n )
 {
-    kd_node_t* raiz = KDT_vertices_build_kdtree(bbox, array, n); // Construa a árvore KD
+    kd_node_t* raiz = KDT_vertices_build_kdtree(bbox, array, n, 0); // Construa a árvore KD
 
     // Verifica se a árvore KD foi construída correntamente
 	if ( raiz == NULL )
@@ -267,4 +268,37 @@ status_t KDT_vertices_BRIO( bbox_t bbox, vertex_t* vertices, const uint32_t n )
 		return sortStatus;
 
 	return HXT_STATUS_OK;
+}
+
+void __desenha_arvore_recursivo(kd_node_t *v, FILE *fptr) {
+    if (v == NULL) {
+        fprintf(fptr, "[null,phantom]");
+    } else {
+        fprintf(fptr, "[%d", v->id);
+        __desenha_arvore_recursivo(v->esquerdo, fptr);
+        __desenha_arvore_recursivo(v->direito, fptr);
+        fprintf(fptr, "]");
+    }
+}
+
+void desenha_arvore(kd_node_t *root, const char *filename) {
+    FILE *fptr = fopen(filename, "w");
+    if (fptr == NULL) {
+        fprintf(stderr, "Erro ao abrir o arquivo '%s' para escrita.\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    fprintf(fptr, "\\documentclass{article}\n");
+    fprintf(fptr, "\\usepackage{forest}\n\n");
+    fprintf(fptr, "\\begin{document}\n\n");
+
+    fprintf(fptr, "\\begin{forest}\n");
+    fprintf(fptr, "for tree={circle,draw, l sep=20pt}\n");
+
+    __desenha_arvore_recursivo(root, fptr);
+
+    fprintf(fptr, "\n\\end{forest}\n\n");
+    fprintf(fptr, "\\end{document}\n");
+
+    fclose(fptr);
 }
