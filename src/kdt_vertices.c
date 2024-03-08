@@ -237,7 +237,7 @@ kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const ui
 
 kd_node_t *KDT_vertices_build_kdtree( bbox_t bbox, vertex_t* vertices, const uint32_t n, int *next_id )
 {
-	return __KDT_vertices_build_kdtree(bbox, vertices, n, 0);
+	return __KDT_vertices_build_kdtree(bbox, vertices, n, next_id);
 }
 
 // Função PRINCIPAL para ordenar o array de vertices usando a árvore KD
@@ -281,14 +281,15 @@ void __desenha_arvore_recursivo(kd_node_t *v, FILE *fptr) {
     }
 }
 
-void desenha_arvore(kd_node_t *root, const char *filename) {
+void desenha_arvore(kd_node_t *root, const char *filename)
+{
     FILE *fptr = fopen(filename, "w");
     if (fptr == NULL) {
         fprintf(stderr, "Erro ao abrir o arquivo '%s' para escrita.\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    fprintf(fptr, "\\documentclass{article}\n");
+    fprintf(fptr, "\\documentclass[tikz, border=1mm]{standalone}\n");
     fprintf(fptr, "\\usepackage{forest}\n\n");
     fprintf(fptr, "\\begin{document}\n\n");
 
