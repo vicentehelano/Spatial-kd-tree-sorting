@@ -196,7 +196,7 @@ int __KDT_get_longest_axis(bbox_t bbox)
     return MAX3_IDX(dx,dy,dz);
 }
 
-kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const uint32_t n, int *next_id)
+kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const uint32_t n)
 {
 	if ( n == 0 )
 		return NULL;
@@ -216,8 +216,6 @@ kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const ui
 	}
 
 	no->vertex = &vertices[median];
-	no->id = (*next_id)++;
-	//no->axis = axis;
 
 	// Calcula os bounding boxes dos retangulos esquerdo e direito
 	bbox_t left_bbox  = bbox;
@@ -227,23 +225,23 @@ kd_node_t *__KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const ui
     right_bbox.min[axis] = no->vertex->coord[axis];
 
 	// Constrói de forma recursiva a subárvore esquerda
-	no->esquerdo = __KDT_vertices_build_kdtree(left_bbox, vertices, median, next_id);
+	no->esquerdo = __KDT_vertices_build_kdtree(left_bbox, vertices, median);
 
 	// Constrói de forma recursiva a subárvore direita
-	no->direito = __KDT_vertices_build_kdtree(right_bbox, vertices + median + 1, n - median - 1, next_id);
+	no->direito = __KDT_vertices_build_kdtree(right_bbox, vertices + median + 1, n - median - 1);
 
 	return no;
 }
 
-kd_node_t *KDT_vertices_build_kdtree( bbox_t bbox, vertex_t* vertices, const uint32_t n, int *next_id )
+kd_node_t *KDT_vertices_build_kdtree( bbox_t bbox, vertex_t* vertices, const uint32_t n)
 {
-	return __KDT_vertices_build_kdtree(bbox, vertices, n, next_id);
+	return __KDT_vertices_build_kdtree(bbox, vertices, n);
 }
 
 // Função PRINCIPAL para ordenar o array de vertices usando a árvore KD
 static status_t KDT_vertices_sort( bbox_t bbox, vertex_t* const __restrict__ array, const uint32_t n )
 {
-    kd_node_t* raiz = KDT_vertices_build_kdtree(bbox, array, n, 0); // Construa a árvore KD
+    kd_node_t* raiz = KDT_vertices_build_kdtree(bbox, array, n); // Construa a árvore KD
 
     // Verifica se a árvore KD foi construída correntamente
 	if ( raiz == NULL )
@@ -274,7 +272,7 @@ void __desenha_arvore_recursivo(kd_node_t *v, FILE *fptr) {
     if (v == NULL) {
         fprintf(fptr, "[null,phantom]");
     } else {
-        fprintf(fptr, "[%d", v->id);
+        fprintf(fptr, "[%d", v->vertex->id);
         __desenha_arvore_recursivo(v->esquerdo, fptr);
         __desenha_arvore_recursivo(v->direito, fptr);
         fprintf(fptr, "]");

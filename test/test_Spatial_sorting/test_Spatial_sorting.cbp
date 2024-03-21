@@ -11,6 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-H -c 8" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DDEBUG" />
@@ -45,6 +46,7 @@
 		<Linker>
 			<Add option="-lm" />
 		</Linker>
+		<Unit filename="../../include/kdt_point_generators.h" />
 		<Unit filename="../../include/kdt_vertices.h" />
 		<Unit filename="../../lib/cargs/include/cargs.h" />
 		<Unit filename="../../lib/cargs/src/cargs.c">
@@ -90,6 +92,9 @@
 		<Unit filename="../../lib/testingRNG/source/xorshift1024star.h" />
 		<Unit filename="../../lib/testingRNG/source/xorshift128plus.h" />
 		<Unit filename="../../lib/testingRNG/source/xorshift32.h" />
+		<Unit filename="../../src/kdt_point_generators.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../../src/kdt_vertices.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -26,16 +26,17 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 #include <math.h>
 
 #include <cargs.h>
-#include <xoroshiro256plusplus.h>
 
 #include <hxt_vertices.h>
 #include <kdt_vertices.h>
+#include <kdt_point_generators.h>
 
 typedef enum point_distribution {
   AXES,
   CUBE,
   CYLINDER,
   DISK,
+  LIU,
   PLANES,
   PARABOLOID,
   SPIRAL
@@ -83,6 +84,12 @@ static struct cag_option options[] = {
     .access_name = "disk",
     .value_name = "NUMBER",
     .description = "generate points inside a unit disk (cylinder with height = 0.1)"},
+
+  {.identifier = 'L',
+    .access_letters = "L",
+    .access_name = "liu",
+    .value_name = "NUMBER",
+    .description = "generate Liu's figure 5 point set"},
 
   {.identifier = 'p',
     .access_letters = "p",
@@ -161,155 +168,6 @@ status_t gmshTetDraw(mesh_t* mesh, const char* filename)
   return HXT_STATUS_OK;
 }
 
-void __points_within_axes(vertex_t** vertices_p, uint32_t npts)
-{
-    double sdx = 1e-2; // standard deviation
-    double sdy = 1e-2;
-    double sdz = 1e-2;
-
-    uint32_t third = npts / 3;
-
-    // Points on the plane xy
-    for (uint32_t i = 0; i < third; i++) {
-        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdx;
-        (*vertices_p)[i].coord[1] = nxoroshiro256plusplus_d() * sdy;
-        (*vertices_p)[i].coord[2] = nxoroshiro256plusplus_d() * sdz;
-    }
-
-    // Points on the plane yz
-    for (uint32_t i = third; i < 2*third; i++) {
-        (*vertices_p)[i].coord[0] = nxoroshiro256plusplus_d() * sdx;
-        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdy;
-        (*vertices_p)[i].coord[2] = nxoroshiro256plusplus_d() * sdz;
-    }
-
-    // Points on the plane zx
-    for (uint32_t i = 2*third; i < npts; i++) {
-        (*vertices_p)[i].coord[0] = nxoroshiro256plusplus_d() * sdx;
-        (*vertices_p)[i].coord[1] = nxoroshiro256plusplus_d() * sdy;
-        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdz;
-    }
-}
-
-void __points_within_cube(vertex_t** vertices_p, uint32_t npts)
-{
-    for (uint32_t i=0; i<npts; i++) {
-    (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d();
-    (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d();
-    (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d();
-  }
-}
-
-void __points_within_cylinder(vertex_t** vertices_p, uint32_t npts, double h)
-{
-    double R = 1.0; // radius
-
-    for (uint32_t i = 0; i < npts; i++) {
-        double theta = 2 * M_PI * xoroshiro256plusplus_d();
-        double r = R * sqrt(xoroshiro256plusplus_d());
-        double x = r * sin(theta);
-        double y = r * cos(theta);
-        double z = h * (xoroshiro256plusplus_d() - 0.5);
-
-        // add gaussian noise
-        double sdx = 1e-2; // standard deviation in x
-        double sdy = 1e-2; // standard deviation in y
-        double sdz = 1e-2; // standard deviation in z
-        x += sdx * nxoroshiro256plusplus_d();
-        y += sdy * nxoroshiro256plusplus_d();
-        z += sdz * nxoroshiro256plusplus_d();
-
-        (*vertices_p)[i].coord[0] = x;
-        (*vertices_p)[i].coord[1] = y;
-        (*vertices_p)[i].coord[2] = z;
-    }
-}
-
-void __points_within_planes(vertex_t** vertices_p, uint32_t npts)
-{
-    double sdx = 1e-2; // standard deviation in x
-    double sdy = 1e-2; // standard deviation in y
-    double sdz = 1e-2; // standard deviation in z
-
-    uint32_t third = npts / 3;
-
-    // plane points xy
-    for (uint32_t i = 0; i < third; i++) {
-        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdx;
-        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdy;
-        (*vertices_p)[i].coord[2] = nxoroshiro256plusplus_d() * sdz;
-    }
-
-    // plane points yz
-    for (uint32_t i = third; i < 2*third; i++) {
-        (*vertices_p)[i].coord[0] = nxoroshiro256plusplus_d() * sdx;
-        (*vertices_p)[i].coord[1] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdy;
-        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdz;
-    }
-
-    // plane points zx
-    for (uint32_t i = 2*third; i < npts; i++) {
-        (*vertices_p)[i].coord[0] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdx;
-        (*vertices_p)[i].coord[1] = nxoroshiro256plusplus_d() * sdy;
-        (*vertices_p)[i].coord[2] = xoroshiro256plusplus_d() + nxoroshiro256plusplus_d() * sdz;
-    }
-}
-
-void __points_within_paraboloid(vertex_t** vertices_p, uint32_t npts)
-{
-    double R = 1.0; // ray
-
-    for (uint32_t i = 0; i < npts; i++) {
-        double theta = 2 * M_PI * xoroshiro256plusplus_d();
-        double r = R * sqrt(xoroshiro256plusplus_d());
-        double x = r * sin(theta);
-        double y = r * cos(theta);
-        double z = pow(x, 2) + pow(y, 2);
-
-        // add gaussian noise
-        double sdx = 1e-2; // standard deviation in x
-        double sdy = 1e-2; // standard deviation in y
-        double sdz = 1e-2; // standard deviation in z
-        x += sdx * nxoroshiro256plusplus_d();
-        y += sdy * nxoroshiro256plusplus_d();
-        z += sdz * nxoroshiro256plusplus_d();
-
-        (*vertices_p)[i].coord[0] = x;
-        (*vertices_p)[i].coord[1] = y;
-        (*vertices_p)[i].coord[2] = z;
-    }
-}
-
-void __points_within_spiral(vertex_t** vertices_p, uint32_t npts)
-{
-    double a = 0.25 / M_PI;
-    double b = 300.0;
-    double h = (b-a)/(npts-1);
-
-    for (uint32_t i = 0; i < npts; i++) {
-        double u0 = i*h;
-        double theta = 2 * M_PI * sqrt(u0);
-        double alpha = 0.5;
-        double beta = 0.01;
-        double gamma = 1.0;
-        double x = alpha * theta * exp(beta * theta) * sin(theta);
-        double y = alpha * theta * exp(beta * theta) * cos(theta);
-        double z = gamma * theta;
-
-        // add gaussian noise
-        double sdx = 5e-1; // standard deviation in x
-        double sdy = 5e-1; // standard deviation in y
-        double sdz = 1e0;  // standard deviation in z
-        x += sdx * nxoroshiro256plusplus_d();
-        y += sdy * nxoroshiro256plusplus_d();
-        z += sdz * nxoroshiro256plusplus_d();
-
-        (*vertices_p)[i].coord[0] = x;
-        (*vertices_p)[i].coord[1] = y;
-        (*vertices_p)[i].coord[2] = z;
-    }
-}
-
 void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
 {
     bbox->min[0] = (*vertices_p)[0].coord[0];
@@ -343,32 +201,35 @@ void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
     }
 }
 
-status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
+status_t __create_vertices(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
   HXT_INFO("creating %u vertices", npts);
   HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
 
   switch (d) {
       case AXES:
-            __points_within_axes(vertices_p, npts);
-            break;
+          points_within_axes(vertices_p, npts);
+          break;
       case CUBE:
-          __points_within_cube(vertices_p, npts);
+          points_within_cube(vertices_p, npts);
           break;
       case CYLINDER:
-          __points_within_cylinder(vertices_p, npts, 2.0);
+          points_within_cylinder(vertices_p, npts, 2.0);
           break;
       case DISK:
-          __points_within_cylinder(vertices_p, npts, 0.0625);
+          points_within_cylinder(vertices_p, npts, 0.0625);
+          break;
+      case LIU:
+          points_from_Liu(vertices_p);
           break;
       case PLANES:
-          __points_within_planes(vertices_p, npts);
+          points_within_planes(vertices_p, npts);
           break;
       case PARABOLOID:
-          __points_within_paraboloid(vertices_p, npts);
+          points_within_paraboloid(vertices_p, npts);
           break;
       case SPIRAL:
-          __points_within_spiral(vertices_p, npts);
+          points_within_spiral(vertices_p, npts);
           break;
       default:
           return HXT_STATUS_FAILED;
@@ -383,7 +244,7 @@ status_t __create_nodes(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Poin
   return HXT_STATUS_OK;
 }
 
-uint32_t create_nodes(int argc, char *argv[], mesh_t *mesh)
+uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
 {
   uint32_t npts = 0;
   const char *value = NULL;
@@ -396,43 +257,48 @@ uint32_t create_nodes(int argc, char *argv[], mesh_t *mesh)
           HXT_INFO("generating points around coordinate axes");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
           break;
         case 'c':
           HXT_INFO("generating points within cube");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
           break;
         case 'C':
           HXT_INFO("generating points within cylinder");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
           break;
         case 'd':
           HXT_INFO("generating points within disk");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
+          break;
+        case 'L':
+          HXT_INFO("generating Liu's paper example");
+          value = cag_option_get_value(&context);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, 15, LIU) == HXT_STATUS_OK);
           break;
         case 'p':
           HXT_INFO("generating points around coordinate planes");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
           break;
         case 'P':
           HXT_INFO("generating points around paraboloid");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
           break;
         case 's':
           HXT_INFO("generating points around logarithmic spiral");
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_nodes(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
           break;
     }
   }
@@ -466,7 +332,6 @@ int main(int argc, char **argv)
   mesh_t* mesh;
   Sorting_algorithm alg = -1;
   cag_option_context context;
-  uint64_t default_seed = 1234567890ULL;
 
   // Grab help menu
   cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
@@ -490,8 +355,7 @@ int main(int argc, char **argv)
   // Create nodes
   HXT_CHECK( HXT_mesh_create(&mesh) );
   clock_t time0 = clock();
-  xoroshiro256plusplus_seed(default_seed);
-  mesh->num_vertices = create_nodes(argc, argv, mesh);
+  mesh->num_vertices = create_vertices(argc, argv, mesh);
   clock_t time1 = clock();
   printf("Point generation: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
 
@@ -521,10 +385,6 @@ int main(int argc, char **argv)
       numGhosts++;
   }
   printf("%u vertices, %lu Delaunay tetrahedra, %lu ghosts, %f s\n", mesh->num_vertices, mesh->tetrahedra.num - numGhosts, numGhosts, (double) (time2-time0)/CLOCKS_PER_SEC);
-
-  int id = 0;
-  kd_node_t *root = KDT_vertices_build_kdtree(mesh->bbox, mesh->vertices, mesh->num_vertices, &id);
-  desenha_arvore(root, "arvore.tex");
 
   gmshTetDraw(mesh, "output.msh");
 

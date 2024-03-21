@@ -6,3 +6,7 @@
 test/test_Spatial_sorting/bin/Release/cube.msh
 *.msh
 test/test_Spatial_sorting/bin
+test/test_Kd_tree/arvore.tex
+test/test_Kd_tree/bin/Release/arvore.pdf
+test/test_Kd_tree/bin/Release/arvore.synctex.gz
+test/test_Kd_tree/bin/Release/arvore.tex

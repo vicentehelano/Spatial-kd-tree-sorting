@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="test_Kd_tree_drawing" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/test_Kd_tree_drawing" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/test_Kd_tree_drawing" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="../../include" />
+					<Add directory="../../lib/testingRNG/source" />
+					<Add directory="../../lib/cargs/include" />
+					<Add directory="../../lib/hxt_seqdel/src" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../../include/kdt_point_generators.h" />
+		<Unit filename="../../include/kdt_vertices.h" />
+		<Unit filename="../../lib/cargs/src/cargs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/kdt_point_generators.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/kdt_vertices.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="test_Kd_tree_drawing.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>

@@ -18,38 +18,34 @@
     See the COPYING file for the GNU General Public License .               *
                                                                             *
 Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
+/*
+#include <time.h>
+#include <string.h>
+#include <assert.h>
 
-#ifndef _KDTREE_VERTICES_
-#define _KDTREE_VERTICES_
+#include <math.h>
 
-#include <hxt_tetrahedra.h>
+#include <cargs.h>
+*/
 
-// Estrutura que representa uma árvore-KD.
-typedef struct kd_node_t_struct {
-    int id;
-	vertex_t* vertex;				        // Ponto associado ao nó da árvore.
-	//int axis;			                    // Campo que indica a dimensão pela qual a árvore KD divide o conjunto de pontos.
-	struct kd_node_t_struct *esquerdo;		// Ponteiro para o filho esquerdo da Árvore KD.
-	struct kd_node_t_struct *direito;		// Ponteiro para o filho direito da Árvore KD.
-} kd_node_t;
+#ifndef _KDTREE_POINT_GENERATORS_
+#define _KDTREE_POINT_GENERATORS_
 
-// Estrutura para representar um nó da fila
-typedef struct queue_node_t_struct {
-	kd_node_t* node;
-	struct queue_node_t_struct* next;
-} queue_node_t;
+#include <hxt_vertices.h>
+/*#include <kdt_vertices.h>*/
 
-// Estrutura para representar uma fila
-typedef struct {
-	queue_node_t* front;
-	queue_node_t* rear;
-} Queue;
+void points_within_axes(vertex_t** vertices_p, uint32_t npts);
 
-kd_node_t *KDT_vertices_build_kdtree(bbox_t bbox, vertex_t* vertices, const uint32_t n);
+void points_within_cube(vertex_t** vertices_p, uint32_t npts);
 
-/* biased randomized insertion order using a kd-tree */
-status_t KDT_vertices_BRIO(bbox_t bbox, vertex_t* vertices, uint32_t n);
+void points_within_cylinder(vertex_t** vertices_p, uint32_t npts, double h);
 
-void desenha_arvore(kd_node_t *root, const char *filename);
+void points_from_Liu(vertex_t** vertices_p);
 
-#endif
+void points_within_planes(vertex_t** vertices_p, uint32_t npts);
+
+void points_within_paraboloid(vertex_t** vertices_p, uint32_t npts);
+
+void points_within_spiral(vertex_t** vertices_p, uint32_t npts);
+
+#endif // _KDTREE_POINT_GENERATORS_
