@@ -81,77 +81,77 @@ void points_from_Liu(vertex_t** vertices_p)
     (*vertices_p)[0].coord[0] = 2.880;
     (*vertices_p)[0].coord[1] = 64.490;
     (*vertices_p)[0].coord[2] = 0.0;
-    (*vertices_p)[0].id = 1;
+    (*vertices_p)[0].dist = 1;
 
     (*vertices_p)[1].coord[0] = 22.320;
     (*vertices_p)[1].coord[1] = 56.810;
     (*vertices_p)[1].coord[2] = 0.0;
-    (*vertices_p)[1].id = 2;
+    (*vertices_p)[1].dist = 2;
 
     (*vertices_p)[2].coord[0] = 38.640;
     (*vertices_p)[2].coord[1] = 64.730;
     (*vertices_p)[2].coord[2] = 0.0;
-    (*vertices_p)[2].id = 3;
+    (*vertices_p)[2].dist = 3;
 
     (*vertices_p)[3].coord[0] = 47.520;
     (*vertices_p)[3].coord[1] = 50.090;
     (*vertices_p)[3].coord[2] = 0.0;
-    (*vertices_p)[3].id = 4;
+    (*vertices_p)[3].dist = 4;
 
     (*vertices_p)[4].coord[0] = 64.920;
     (*vertices_p)[4].coord[1] = 40.490;
     (*vertices_p)[4].coord[2] = 0.0;
-    (*vertices_p)[4].id = 5;
+    (*vertices_p)[4].dist = 5;
 
     (*vertices_p)[5].coord[0] = 66.480;
     (*vertices_p)[5].coord[1] = 19.730;
     (*vertices_p)[5].coord[2] = 0.0;
-    (*vertices_p)[5].id = 6;
+    (*vertices_p)[5].dist = 6;
 
     (*vertices_p)[6].coord[0] = 90.840;
     (*vertices_p)[6].coord[1] = 4.010;
     (*vertices_p)[6].coord[2] = 0.0;
-    (*vertices_p)[6].id = 7;
+    (*vertices_p)[6].dist = 7;
 
     (*vertices_p)[7].coord[0] = 98.280;
     (*vertices_p)[7].coord[1] = 43.730;
     (*vertices_p)[7].coord[2] = 0.0;
-    (*vertices_p)[7].id = 8;
+    (*vertices_p)[7].dist = 8;
 
     (*vertices_p)[8].coord[0] = 102.840;
     (*vertices_p)[8].coord[1] = 70.970;
     (*vertices_p)[8].coord[2] = 0.0;
-    (*vertices_p)[8].id = 9;
+    (*vertices_p)[8].dist = 9;
 
     (*vertices_p)[9].coord[0] = 119.760;
     (*vertices_p)[9].coord[1] = 59.810;
     (*vertices_p)[9].coord[2] = 0.0;
-    (*vertices_p)[9].id = 10;
+    (*vertices_p)[9].dist = 10;
 
     (*vertices_p)[10].coord[0] = 125.400;
     (*vertices_p)[10].coord[1] = 17.330;
     (*vertices_p)[10].coord[2] = 0.0;
-    (*vertices_p)[10].id = 11;
+    (*vertices_p)[10].dist = 11;
 
     (*vertices_p)[11].coord[0] = 142.680;
     (*vertices_p)[11].coord[1] = 44.330;
     (*vertices_p)[11].coord[2] = 0.0;
-    (*vertices_p)[11].id = 12;
+    (*vertices_p)[11].dist = 12;
 
     (*vertices_p)[12].coord[0] = 162.480;
     (*vertices_p)[12].coord[1] = 22.130;
     (*vertices_p)[12].coord[2] = 0.0;
-    (*vertices_p)[12].id = 13;
+    (*vertices_p)[12].dist = 13;
 
     (*vertices_p)[13].coord[0] = 182.400;
     (*vertices_p)[13].coord[1] = 11.450;
     (*vertices_p)[13].coord[2] = 0.0;
-    (*vertices_p)[13].id = 14;
+    (*vertices_p)[13].dist = 14;
 
     (*vertices_p)[14].coord[0] = 199.680;
     (*vertices_p)[14].coord[1] = 18.770;
     (*vertices_p)[14].coord[2] = 0.0;
-    (*vertices_p)[14].id = 15;
+    (*vertices_p)[14].dist = 15;
 }
 
 void points_within_planes(vertex_t** vertices_p, uint32_t npts)
