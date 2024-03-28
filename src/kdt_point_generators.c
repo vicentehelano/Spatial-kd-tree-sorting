@@ -244,3 +244,28 @@ void points_within_spiral(vertex_t** vertices_p, uint32_t npts)
         (*vertices_p)[i].coord[2] = z;
     }
 }
+
+void points_around_saddle(vertex_t** vertices_p, uint32_t npts)
+{
+    double R = 1.0; // ray
+
+    xoroshiro256plusplus_seed(default_seed);
+
+    for (uint32_t i = 0; i < npts; i++) {
+        double x = 2*xoroshiro256plusplus_d() - 1.0;
+        double y = 2*xoroshiro256plusplus_d() - 1.0;
+        double z = x*x - y*y;
+
+        // add gaussian noise
+        double sdx = 1e-2; // standard deviation in x
+        double sdy = 1e-2; // standard deviation in y
+        double sdz = 1e-2; // standard deviation in z
+        x += sdx * nxoroshiro256plusplus_d();
+        y += sdy * nxoroshiro256plusplus_d();
+        z += sdz * nxoroshiro256plusplus_d();
+
+        (*vertices_p)[i].coord[0] = x;
+        (*vertices_p)[i].coord[1] = y;
+        (*vertices_p)[i].coord[2] = z;
+    }
+}

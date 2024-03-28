@@ -47,5 +47,7 @@ void points_within_planes(vertex_t** vertices_p, uint32_t npts);
 void points_within_paraboloid(vertex_t** vertices_p, uint32_t npts);
 
 void points_within_spiral(vertex_t** vertices_p, uint32_t npts);
+void points_around_saddle(vertex_t** vertices_p, uint32_t npts);
+
 
 #endif // _KDTREE_POINT_GENERATORS_
