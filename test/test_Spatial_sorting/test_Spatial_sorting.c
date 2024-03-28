@@ -39,7 +39,8 @@ typedef enum point_distribution {
   LIU,
   PLANES,
   PARABOLOID,
-  SPIRAL
+  SPIRAL,
+  SADDLE
 } Point_distribution;
 
 typedef enum sorting_algorithm {
@@ -114,6 +115,12 @@ static struct cag_option options[] = {
     .access_name = "spiral",
     .value_name = "NUMBER",
     .description = "generate points along a spiral"},
+
+  {.identifier = 'S',
+    .access_letters = "S",
+    .access_name = "saddle",
+    .value_name = "NUMBER",
+    .description = "generate points around saddle surface"},
 
   {.identifier = 'h',
     .access_letters = "h",
@@ -209,7 +216,7 @@ void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
 
 status_t __create_vertices(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
 {
-  #ifndef DEBUG
+  #ifdef DEBUG
   HXT_INFO("creating %u vertices", npts);
   #endif
   HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
@@ -239,6 +246,9 @@ status_t __create_vertices(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, P
       case SPIRAL:
           points_within_spiral(vertices_p, npts);
           break;
+      case SADDLE:
+          points_around_saddle(vertices_p, npts);
+          break;
       default:
           return HXT_STATUS_FAILED;
   }
@@ -262,7 +272,7 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
   while (cag_option_fetch(&context)) {
     switch (cag_option_get_identifier(&context)) {
         case 'a':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points around coordinate axes");
           #endif
           value = cag_option_get_value(&context);
@@ -270,7 +280,7 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
           break;
         case 'c':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points within cube");
           #endif
           value = cag_option_get_value(&context);
@@ -278,7 +288,7 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
           break;
         case 'C':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points within cylinder");
           #endif
           value = cag_option_get_value(&context);
@@ -286,7 +296,7 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
           break;
         case 'd':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points within disk");
           #endif
           value = cag_option_get_value(&context);
@@ -294,14 +304,14 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
           break;
         case 'L':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating Liu's paper example");
           #endif
           value = cag_option_get_value(&context);
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, 15, LIU) == HXT_STATUS_OK);
           break;
         case 'p':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points around coordinate planes");
           #endif
           value = cag_option_get_value(&context);
@@ -309,7 +319,7 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
           break;
         case 'P':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points around paraboloid");
           #endif
           value = cag_option_get_value(&context);
@@ -317,12 +327,20 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
           break;
         case 's':
-          #ifndef DEBUG
+          #ifdef DEBUG
           HXT_INFO("generating points around logarithmic spiral");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
           assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
+          break;
+        case 'S':
+          #ifdef DEBUG
+          HXT_INFO("generating points around logarithmic spiral");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, SADDLE) == HXT_STATUS_OK);
           break;
     }
   }
@@ -374,7 +392,7 @@ int main(int argc, char **argv)
     usage(argv);
     return EXIT_FAILURE;
   }
-  #ifndef DEBUG
+  #ifdef DEBUG
   HXT_INFO("sorting algorithm: %s", ((alg == HXT)?("HXT native"):("cut-longest-edge kd-tree")));
   #endif // DEBUG
   // Create nodes
@@ -382,7 +400,7 @@ int main(int argc, char **argv)
   clock_t time0 = clock();
   mesh->num_vertices = create_vertices(argc, argv, mesh);
   clock_t time1 = clock();
-  #ifndef DEBUG
+  #ifdef DEBUG
   printf("Point generation: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
   #endif // DEBUG
   // Run the spatial sorting algorithm
@@ -397,7 +415,7 @@ int main(int argc, char **argv)
           break;
   }
   clock_t time2 = clock();
-  #ifndef DEBUG
+  #ifdef DEBUG
   printf("BRIO: %f s\n", (double) (time2-time1) / CLOCKS_PER_SEC);
   #endif // DEBUG
   // this is were we are really doing the delaunay...
@@ -405,9 +423,9 @@ int main(int argc, char **argv)
 
   clock_t time3 = clock();
   // O TEMPO AQUI
-  printf("%f s\n", (double) (time3-time2) / CLOCKS_PER_SEC);
+  printf("%f\n", (double) (time3-time2) / CLOCKS_PER_SEC);
 
-  #ifndef DEBUG
+  #ifdef DEBUG
   printf("Delaunay insertion: %f s\n", (double) (time3-time2) / CLOCKS_PER_SEC);
 
   uint64_t numGhosts = 0;
