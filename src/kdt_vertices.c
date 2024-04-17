@@ -272,7 +272,7 @@ void __desenha_arvore_recursivo(kd_node_t *v, FILE *fptr) {
     if (v == NULL) {
         fprintf(fptr, "[null,phantom]");
     } else {
-        fprintf(fptr, "[%d", v->vertex->dist);
+        fprintf(fptr, "[%lu", v->vertex->dist);
         __desenha_arvore_recursivo(v->esquerdo, fptr);
         __desenha_arvore_recursivo(v->direito, fptr);
         fprintf(fptr, "]");
