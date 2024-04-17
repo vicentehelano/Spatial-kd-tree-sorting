@@ -34,20 +34,20 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 #include <hxt_vertices.h>
 /*#include <kdt_vertices.h>*/
 
-void points_within_axes(vertex_t** vertices_p, uint32_t npts);
+void points_within_axes(vertex_t* vertices, uint32_t npts);
 
-void points_within_cube(vertex_t** vertices_p, uint32_t npts);
+void points_within_cube(vertex_t* vertices, uint32_t npts);
 
-void points_within_cylinder(vertex_t** vertices_p, uint32_t npts, double h);
+void points_within_cylinder(vertex_t* vertices, uint32_t npts, double h);
 
-void points_from_Liu(vertex_t** vertices_p);
+void points_from_Liu(vertex_t* vertices);
 
-void points_within_planes(vertex_t** vertices_p, uint32_t npts);
+void points_within_planes(vertex_t* vertices, uint32_t npts);
 
-void points_within_paraboloid(vertex_t** vertices_p, uint32_t npts);
+void points_within_paraboloid(vertex_t* vertices, uint32_t npts);
 
-void points_within_spiral(vertex_t** vertices_p, uint32_t npts);
-void points_around_saddle(vertex_t** vertices_p, uint32_t npts);
+void points_within_spiral(vertex_t* vertices, uint32_t npts);
 
+void points_around_saddle(vertex_t* vertices, uint32_t npts);
 
 #endif // _KDTREE_POINT_GENERATORS_

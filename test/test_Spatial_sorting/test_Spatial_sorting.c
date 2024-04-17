@@ -21,7 +21,6 @@ Author: Célestin Marot (celestin.marot@uclouvain.be)                        */
 
 #include <time.h>
 #include <string.h>
-#include <assert.h>
 
 #include <math.h>
 
@@ -181,88 +180,91 @@ status_t gmshTetDraw(mesh_t* mesh, const char* filename)
   return HXT_STATUS_OK;
 }
 
-void __get_bounding_box(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts)
+void __get_bounding_box(mesh_t *mesh)
 {
-    bbox->min[0] = (*vertices_p)[0].coord[0];
-    bbox->min[1] = (*vertices_p)[0].coord[1];
-    bbox->min[2] = (*vertices_p)[0].coord[2];
-    bbox->max[0] = (*vertices_p)[0].coord[0];
-    bbox->max[1] = (*vertices_p)[0].coord[1];
-    bbox->max[2] = (*vertices_p)[0].coord[2];
+    bbox_t bbox;
+    vertex_t *vertices = mesh->vertices;
 
-    for (uint32_t i = 1; i < npts; i++) {
+    bbox.min[0] = vertices[0].coord[0];
+    bbox.min[1] = vertices[0].coord[1];
+    bbox.min[2] = vertices[0].coord[2];
+    bbox.max[0] = vertices[0].coord[0];
+    bbox.max[1] = vertices[0].coord[1];
+    bbox.max[2] = vertices[0].coord[2];
+
+    for (uint32_t i = 1; i < mesh->num_vertices; i++) {
         // Update bbbx to X
-        if ((*vertices_p)[i].coord[0] < bbox->min[0])
-            bbox->min[0] = (*vertices_p)[i].coord[0];
+        if (vertices[i].coord[0] < bbox.min[0])
+            bbox.min[0] = vertices[i].coord[0];
 
-        if ((*vertices_p)[i].coord[0] > bbox->max[0])
-            bbox->max[0] = (*vertices_p)[i].coord[0];
+        if (vertices[i].coord[0] > bbox.max[0])
+            bbox.max[0] = vertices[i].coord[0];
 
         // Update bbbx to Y
-        if ((*vertices_p)[i].coord[1] < bbox->min[1])
-            bbox->min[1] = (*vertices_p)[i].coord[1];
+        if (vertices[i].coord[1] < bbox.min[1])
+            bbox.min[1] = vertices[i].coord[1];
 
-        if ((*vertices_p)[i].coord[1] > bbox->max[1])
-            bbox->max[1] = (*vertices_p)[i].coord[1];
+        if (vertices[i].coord[1] > bbox.max[1])
+            bbox.max[1] = vertices[i].coord[1];
 
         // Update bbbx to Z
-        if ((*vertices_p)[i].coord[2] < bbox->min[2])
-            bbox->min[2] = (*vertices_p)[i].coord[2];
+        if (vertices[i].coord[2] < bbox.min[2])
+            bbox.min[2] = vertices[i].coord[2];
 
-        if ((*vertices_p)[i].coord[2] > bbox->max[2])
-            bbox->max[2] = (*vertices_p)[i].coord[2];
+        if (vertices[i].coord[2] > bbox.max[2])
+            bbox.max[2] = vertices[i].coord[2];
     }
+
+    mesh->bbox = bbox;
 }
 
-status_t __create_vertices(bbox_t* bbox, vertex_t** vertices_p, uint32_t npts, Point_distribution d)
+status_t __create_vertices(uint32_t npts, Point_distribution d, mesh_t* mesh)
 {
-  #ifdef DEBUG
+  #ifndef NDEBUG
   HXT_INFO("creating %u vertices", npts);
   #endif
-  HXT_CHECK( HXT_malloc(vertices_p, sizeof(vertex_t)*npts) );
+  HXT_CHECK( HXT_malloc(&mesh->vertices, sizeof(vertex_t)*npts) );
 
   switch (d) {
       case AXES:
-          points_within_axes(vertices_p, npts);
+          points_within_axes(mesh->vertices, npts);
           break;
       case CUBE:
-          points_within_cube(vertices_p, npts);
+          points_within_cube(mesh->vertices, npts);
           break;
       case CYLINDER:
-          points_within_cylinder(vertices_p, npts, 2.0);
+          points_within_cylinder(mesh->vertices, npts, 2.0);
           break;
       case DISK:
-          points_within_cylinder(vertices_p, npts, 0.0625);
+          points_within_cylinder(mesh->vertices, npts, 0.0625);
           break;
       case LIU:
-          points_from_Liu(vertices_p);
+          points_from_Liu(mesh->vertices);
           break;
       case PLANES:
-          points_within_planes(vertices_p, npts);
+          points_within_planes(mesh->vertices, npts);
           break;
       case PARABOLOID:
-          points_within_paraboloid(vertices_p, npts);
+          points_within_paraboloid(mesh->vertices, npts);
           break;
       case SPIRAL:
-          points_within_spiral(vertices_p, npts);
+          points_within_spiral(mesh->vertices, npts);
           break;
       case SADDLE:
-          points_around_saddle(vertices_p, npts);
+          points_around_saddle(mesh->vertices, npts);
           break;
       default:
           return HXT_STATUS_FAILED;
   }
+  mesh->num_vertices  = npts;
+  mesh->size_vertices = npts;
 
-  // TODO:
-  // CALCULAR O BOUNDING BOX MANUALMENTE,
-  // USANDO UMA FUNÇÃO AUXILIAR: __get_bounding_box(...)
-  // Compute bounding box
-  __get_bounding_box(bbox, vertices_p, npts);
+  __get_bounding_box(mesh);
 
   return HXT_STATUS_OK;
 }
 
-uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
+status_t create_vertices(int argc, char *argv[], mesh_t *mesh)
 {
   uint32_t npts = 0;
   const char *value = NULL;
@@ -272,79 +274,80 @@ uint32_t create_vertices(int argc, char *argv[], mesh_t *mesh)
   while (cag_option_fetch(&context)) {
     switch (cag_option_get_identifier(&context)) {
         case 'a':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points around coordinate axes");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, AXES) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, AXES, mesh) );
           break;
         case 'c':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points within cube");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, CUBE) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, CUBE, mesh) );
           break;
         case 'C':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points within cylinder");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, CYLINDER) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, CYLINDER, mesh) );
           break;
         case 'd':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points within disk");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, DISK) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, DISK, mesh) );
           break;
         case 'L':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating Liu's paper example");
           #endif
           value = cag_option_get_value(&context);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, 15, LIU) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(15, LIU, mesh) );
           break;
         case 'p':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points around coordinate planes");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, PLANES) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, PLANES, mesh) );
           break;
         case 'P':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points around paraboloid");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, PARABOLOID) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, PARABOLOID, mesh) );
           break;
         case 's':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points around logarithmic spiral");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, SPIRAL) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, SPIRAL, mesh) );
           break;
         case 'S':
-          #ifdef DEBUG
+          #ifndef NDEBUG
           HXT_INFO("generating points around logarithmic spiral");
           #endif
           value = cag_option_get_value(&context);
           npts = atoi(value);
-          assert(__create_vertices(&mesh->bbox, &mesh->vertices, npts, SADDLE) == HXT_STATUS_OK);
+          HXT_CHECK( __create_vertices(npts, SADDLE, mesh) );
           break;
     }
   }
-  return npts;
+
+  return HXT_STATUS_OK;
 }
 
 Sorting_algorithm get_sorting_algorithm(int argc, char *argv[])
@@ -392,15 +395,15 @@ int main(int argc, char **argv)
     usage(argv);
     return EXIT_FAILURE;
   }
-  #ifdef DEBUG
+  #ifndef NDEBUG
   HXT_INFO("sorting algorithm: %s", ((alg == HXT)?("HXT native"):("cut-longest-edge kd-tree")));
   #endif // DEBUG
   // Create nodes
   HXT_CHECK( HXT_mesh_create(&mesh) );
   clock_t time0 = clock();
-  mesh->num_vertices = create_vertices(argc, argv, mesh);
+  HXT_CHECK( create_vertices(argc, argv, mesh) );
   clock_t time1 = clock();
-  #ifdef DEBUG
+  #ifndef NDEBUG
   printf("Point generation: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
   #endif // DEBUG
   // Run the spatial sorting algorithm
@@ -415,7 +418,7 @@ int main(int argc, char **argv)
           break;
   }
   clock_t time2 = clock();
-  #ifdef DEBUG
+  #ifndef NDEBUG
   printf("BRIO: %f s\n", (double) (time2-time1) / CLOCKS_PER_SEC);
   #endif // DEBUG
   // this is were we are really doing the delaunay...
@@ -425,7 +428,7 @@ int main(int argc, char **argv)
   // O TEMPO AQUI
   printf("%f\n", (double) (time3-time2) / CLOCKS_PER_SEC);
 
-  #ifdef DEBUG
+  #ifndef NDEBUG
   printf("Delaunay insertion: %f s\n", (double) (time3-time2) / CLOCKS_PER_SEC);
 
   uint64_t numGhosts = 0;
