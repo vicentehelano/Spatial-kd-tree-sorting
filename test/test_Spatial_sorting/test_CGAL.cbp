@@ -15,11 +15,16 @@
 					<Add option="-g" />
 					<Add option="-frounding-math" />
 					<Add option="-DBOOST_ALL_NO_LIB" />
-					<Add option="-DCGAL_USE_GMPXX=1" />
 					<Add option="-DNOMINMAX" />
+					<Add directory="../../lib/boost_1_85_0" />
+					<Add directory="../../lib/CGAL-5.6.1/include" />
+					<Add directory="../../lib/CGAL-5.6.1/auxiliary/gmp/include" />
+					<Add directory="../../lib/testingRNG/source" />
+					<Add directory="../../lib/cargs/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lgmp" />
+					<Add option="-lgmp-10" />
+					<Add directory="../../lib/CGAL-5.6.1/auxiliary/gmp/lib" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -31,12 +36,17 @@
 					<Add option="-O3" />
 					<Add option="-frounding-math" />
 					<Add option="-DBOOST_ALL_NO_LIB" />
-					<Add option="-DCGAL_USE_GMPXX=1" />
 					<Add option="-DNOMINMAX" />
 					<Add option="-DNDEBUG" />
+					<Add directory="../../lib/boost_1_85_0" />
+					<Add directory="../../lib/CGAL-5.6.1/include" />
+					<Add directory="../../lib/CGAL-5.6.1/auxiliary/gmp/include" />
+					<Add directory="../../lib/testingRNG/source" />
+					<Add directory="../../lib/cargs/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lgmp" />
+					<Add option="-lgmp-10" />
+					<Add directory="../../lib/CGAL-5.6.1/auxiliary/gmp/lib" />
 				</Linker>
 			</Target>
 		</Build>
@@ -44,6 +54,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="../../lib/cargs/src/cargs.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="test_CGAL.cpp" />
 		<Extensions />
 	</Project>
