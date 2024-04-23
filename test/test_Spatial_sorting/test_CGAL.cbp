@@ -23,8 +23,7 @@
 					<Add directory="../../lib/cargs/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lgmp" />
-					<Add directory="../../lib/CGAL-5.6.1/auxiliary/gmp/lib" />
+					<Add library="../../lib/CGAL-5.6.1/auxiliary/gmp/lib/libgmp-10.lib" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -45,8 +44,8 @@
 					<Add directory="../../lib/cargs/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lgmp" />
-					<Add directory="../../lib/CGAL-5.6.1/auxiliary/gmp/lib" />
+					<Add option="-static" />
+					<Add library="../../lib/CGAL-5.6.1/auxiliary/gmp/lib/libgmp-10.lib" />
 				</Linker>
 			</Target>
 		</Build>

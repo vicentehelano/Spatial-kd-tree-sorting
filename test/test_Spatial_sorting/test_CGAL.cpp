@@ -270,7 +270,7 @@ void points_around_saddle(uint32_t npts, std::vector<Point> &out)
     }
 }
 
-int __create_vertices(uint32_t npts, Point_distribution d, std::vector<Point> &vertices)
+int create_vertices(uint32_t npts, Point_distribution d, std::vector<Point> &vertices)
 {
   vertices.reserve(npts);
 
@@ -306,85 +306,6 @@ int __create_vertices(uint32_t npts, Point_distribution d, std::vector<Point> &v
   return EXIT_SUCCESS;
 }
 
-int create_vertices(int argc, char *argv[], std::vector<Point> &vertices)
-{
-  uint32_t npts = 0;
-  const char *value = NULL;
-  cag_option_context context;
-  cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
-
-  while (cag_option_fetch(&context)) {
-    switch (cag_option_get_identifier(&context)) {
-        case 'a':
-          #ifndef NDEBUG
-          std::cout << "generating points around coordinate axes\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, AXES, vertices);
-          break;
-        case 'c':
-          #ifndef NDEBUG
-          std::cout << "generating points within cube\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, CUBE, vertices);
-          break;
-        case 'C':
-          #ifndef NDEBUG
-          std::cout << "generating points within cylinder\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, CYLINDER, vertices);
-          break;
-        case 'd':
-          #ifndef NDEBUG
-          std::cout << "generating points within disk\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, DISK, vertices);
-          break;
-        case 'p':
-          #ifndef NDEBUG
-          std::cout << "generating points around coordinate planes\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, PLANES, vertices);
-          break;
-        case 'P':
-          #ifndef NDEBUG
-          std::cout << "generating points around paraboloid\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, PARABOLOID, vertices);
-          break;
-        case 's':
-          #ifndef NDEBUG
-          std::cout << "generating points around logarithmic spiral\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, SPIRAL, vertices);
-          break;
-        case 'S':
-          #ifndef NDEBUG
-          std::cout << "generating points around logarithmic spiral\n";
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          __create_vertices(npts, SADDLE, vertices);
-          break;
-    }
-  }
-
-  return EXIT_SUCCESS;
-}
-
 void usage(char *argv[])
 {
   printf("Usage: %s [OPTION]...\n\n", argv[0]);
@@ -393,22 +314,96 @@ void usage(char *argv[])
 
 int main(int argc, char **argv)
 {
+  uint32_t npts = 0;
+  const char *value = NULL;
   cag_option_context context;
+  std::vector<Point> vertices;
 
   // Grab help menu
   cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
   while (cag_option_fetch(&context)) {
     switch (cag_option_get_identifier(&context)) {
+        case 'a':
+          #ifndef NDEBUG
+          std::cout << "generating points around coordinate axes\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, AXES, vertices);
+          break;
+        case 'c':
+          #ifndef NDEBUG
+          std::cout << "generating points within cube\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, CUBE, vertices);
+          break;
+        case 'C':
+          #ifndef NDEBUG
+          std::cout << "generating points within cylinder\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, CYLINDER, vertices);
+          break;
+        case 'd':
+          #ifndef NDEBUG
+          std::cout << "generating points within disk\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, DISK, vertices);
+          break;
+        case 'p':
+          #ifndef NDEBUG
+          std::cout << "generating points around coordinate planes\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, PLANES, vertices);
+          break;
+        case 'P':
+          #ifndef NDEBUG
+          std::cout << "generating points around paraboloid\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, PARABOLOID, vertices);
+          break;
+        case 's':
+          #ifndef NDEBUG
+          std::cout << "generating points around logarithmic spiral\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, SPIRAL, vertices);
+          break;
+        case 'S':
+          #ifndef NDEBUG
+          std::cout << "generating points around logarithmic spiral\n";
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          create_vertices(npts, SADDLE, vertices);
+          break;
         case 'h':
           usage(argv);
           return EXIT_SUCCESS;
+        case '?':
+          cag_option_print_error(&context, stdout);
+          return EXIT_FAILURE;
     }
   }
 
-  // Generate points
-  std::vector<Point> vertices;
-  create_vertices(argc, argv, vertices);
+  if (vertices.size() == 0) {
+        std::cerr << "Error: empty point set\n";
+        return EXIT_FAILURE;
+  }
 
+  #ifndef NDEBUG
+  std::cout << "constructing the Delaunay triangulation\n";
+  #endif
   clock_t time0 = clock();
   Triangulation T(vertices.begin(), vertices.end());
   clock_t time1 = clock();
