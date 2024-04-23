@@ -370,13 +370,14 @@ int main(int argc, char **argv)
     }
   }
 
+  // Check point set
   if (mesh->num_vertices == 0) {
         fprintf(stderr, "%s: empty point set.\n", argv[0]);
         usage(argv);
         return EXIT_FAILURE;
   }
 
-  // Get sorting algorithm
+  // Check sorting algorithm
   if (alg == UNDEFINED_ALGORITHM) {
     fprintf(stderr, "%s: undefined sorting algorithm.\n", argv[0]);
     usage(argv);
@@ -404,9 +405,7 @@ int main(int argc, char **argv)
   #endif // DEBUG
   // this is were we are really doing the delaunay...
   HXT_CHECK( HXT_tetrahedra_compute(mesh) );
-
   clock_t time2 = clock();
-  // O TEMPO AQUI
   #ifdef NDEBUG
   printf("%f\n", (double) (time2-time1) / CLOCKS_PER_SEC);
   #else
