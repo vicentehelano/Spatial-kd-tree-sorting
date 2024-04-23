@@ -218,7 +218,7 @@ void __get_bounding_box(mesh_t *mesh)
     mesh->bbox = bbox;
 }
 
-status_t __create_vertices(uint32_t npts, Point_distribution d, mesh_t* mesh)
+status_t create_vertices(uint32_t npts, Point_distribution d, mesh_t* mesh)
 {
   #ifndef NDEBUG
   HXT_INFO("creating %u vertices", npts);
@@ -264,108 +264,6 @@ status_t __create_vertices(uint32_t npts, Point_distribution d, mesh_t* mesh)
   return HXT_STATUS_OK;
 }
 
-status_t create_vertices(int argc, char *argv[], mesh_t *mesh)
-{
-  uint32_t npts = 0;
-  const char *value = NULL;
-  cag_option_context context;
-  cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
-
-  while (cag_option_fetch(&context)) {
-    switch (cag_option_get_identifier(&context)) {
-        case 'a':
-          #ifndef NDEBUG
-          HXT_INFO("generating points around coordinate axes");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, AXES, mesh) );
-          break;
-        case 'c':
-          #ifndef NDEBUG
-          HXT_INFO("generating points within cube");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, CUBE, mesh) );
-          break;
-        case 'C':
-          #ifndef NDEBUG
-          HXT_INFO("generating points within cylinder");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, CYLINDER, mesh) );
-          break;
-        case 'd':
-          #ifndef NDEBUG
-          HXT_INFO("generating points within disk");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, DISK, mesh) );
-          break;
-        case 'L':
-          #ifndef NDEBUG
-          HXT_INFO("generating Liu's paper example");
-          #endif
-          value = cag_option_get_value(&context);
-          HXT_CHECK( __create_vertices(15, LIU, mesh) );
-          break;
-        case 'p':
-          #ifndef NDEBUG
-          HXT_INFO("generating points around coordinate planes");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, PLANES, mesh) );
-          break;
-        case 'P':
-          #ifndef NDEBUG
-          HXT_INFO("generating points around paraboloid");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, PARABOLOID, mesh) );
-          break;
-        case 's':
-          #ifndef NDEBUG
-          HXT_INFO("generating points around logarithmic spiral");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, SPIRAL, mesh) );
-          break;
-        case 'S':
-          #ifndef NDEBUG
-          HXT_INFO("generating points around logarithmic spiral");
-          #endif
-          value = cag_option_get_value(&context);
-          npts = atoi(value);
-          HXT_CHECK( __create_vertices(npts, SADDLE, mesh) );
-          break;
-    }
-  }
-
-  return HXT_STATUS_OK;
-}
-
-Sorting_algorithm get_sorting_algorithm(int argc, char *argv[])
-{
-  cag_option_context context;
-  cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
-  // get the target sorting algorithm
-  while (cag_option_fetch(&context)) {
-    switch (cag_option_get_identifier(&context)) {
-        case 'H':
-          return HXT;
-        case 'K':
-          return KDT;
-    }
-  }
-  return UNDEFINED_ALGORITHM;
-}
-
 void usage(char *argv[])
 {
   printf("Usage: %s [OPTION]...\n\n", argv[0]);
@@ -375,38 +273,121 @@ void usage(char *argv[])
 int main(int argc, char **argv)
 {
   mesh_t* mesh;
+  uint32_t npts = 0;
+  const char *value = NULL;
   Sorting_algorithm alg = -1;
   cag_option_context context;
+
+  HXT_CHECK( HXT_mesh_create(&mesh) );
 
   // Grab help menu
   cag_option_init(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
   while (cag_option_fetch(&context)) {
     switch (cag_option_get_identifier(&context)) {
+        case 'a':
+          #ifndef NDEBUG
+          HXT_INFO("generating points around coordinate axes");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, AXES, mesh) );
+          break;
+        case 'c':
+          #ifndef NDEBUG
+          HXT_INFO("generating points within cube");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, CUBE, mesh) );
+          break;
+        case 'C':
+          #ifndef NDEBUG
+          HXT_INFO("generating points within cylinder");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, CYLINDER, mesh) );
+          break;
+        case 'd':
+          #ifndef NDEBUG
+          HXT_INFO("generating points within disk");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, DISK, mesh) );
+          break;
+        case 'L':
+          #ifndef NDEBUG
+          HXT_INFO("generating Liu's paper example");
+          #endif
+          value = cag_option_get_value(&context);
+          HXT_CHECK( create_vertices(15, LIU, mesh) );
+          break;
+        case 'p':
+          #ifndef NDEBUG
+          HXT_INFO("generating points around coordinate planes");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, PLANES, mesh) );
+          break;
+        case 'P':
+          #ifndef NDEBUG
+          HXT_INFO("generating points around paraboloid");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, PARABOLOID, mesh) );
+          break;
+        case 's':
+          #ifndef NDEBUG
+          HXT_INFO("generating points around logarithmic spiral");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, SPIRAL, mesh) );
+          break;
+        case 'S':
+          #ifndef NDEBUG
+          HXT_INFO("generating points around logarithmic spiral");
+          #endif
+          value = cag_option_get_value(&context);
+          npts = atoi(value);
+          HXT_CHECK( create_vertices(npts, SADDLE, mesh) );
+          break;
+        case 'H':
+          alg = HXT;
+          break;
+        case 'K':
+          alg = KDT;
+          break;
         case 'h':
           usage(argv);
           return EXIT_SUCCESS;
+        case '?':
+          cag_option_print_error(&context, stdout);
+          return EXIT_FAILURE;
     }
   }
 
+  if (mesh->num_vertices == 0) {
+        fprintf(stderr, "%s: empty point set.\n", argv[0]);
+        usage(argv);
+        return EXIT_FAILURE;
+  }
+
   // Get sorting algorithm
-  alg = get_sorting_algorithm(argc, argv);
   if (alg == UNDEFINED_ALGORITHM) {
     fprintf(stderr, "%s: undefined sorting algorithm.\n", argv[0]);
     usage(argv);
     return EXIT_FAILURE;
   }
+
+  // Run the spatial sorting algorithm
   #ifndef NDEBUG
   HXT_INFO("sorting algorithm: %s", ((alg == HXT)?("HXT native"):("cut-longest-edge kd-tree")));
-  #endif // DEBUG
-  // Create nodes
-  HXT_CHECK( HXT_mesh_create(&mesh) );
   clock_t time0 = clock();
-  HXT_CHECK( create_vertices(argc, argv, mesh) );
-  clock_t time1 = clock();
-  #ifndef NDEBUG
-  printf("Point generation: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
   #endif // DEBUG
-  // Run the spatial sorting algorithm
   switch (alg) {
       case HXT:
           HXT_CHECK( HXT_vertices_BRIO(&mesh->bbox, mesh->vertices, mesh->num_vertices) );
@@ -417,31 +398,31 @@ int main(int argc, char **argv)
       default:
           break;
   }
-  clock_t time2 = clock();
+  clock_t time1 = clock();
   #ifndef NDEBUG
-  printf("BRIO: %f s\n", (double) (time2-time1) / CLOCKS_PER_SEC);
+  printf("BRIO: %f s\n", (double) (time1-time0) / CLOCKS_PER_SEC);
   #endif // DEBUG
   // this is were we are really doing the delaunay...
   HXT_CHECK( HXT_tetrahedra_compute(mesh) );
 
-  clock_t time3 = clock();
+  clock_t time2 = clock();
   // O TEMPO AQUI
-  printf("%f\n", (double) (time3-time2) / CLOCKS_PER_SEC);
-
-  #ifndef NDEBUG
-  printf("Delaunay insertion: %f s\n", (double) (time3-time2) / CLOCKS_PER_SEC);
+  #ifdef NDEBUG
+  printf("%f\n", (double) (time2-time1) / CLOCKS_PER_SEC);
+  #else
+  printf("Delaunay insertion: %f s\n", (double) (time2-time1) / CLOCKS_PER_SEC);
 
   uint64_t numGhosts = 0;
   for(uint64_t i=0; i<mesh->tetrahedra.num; i++) {
     if(mesh->tetrahedra.node[4*i + 3]==HXT_GHOST_VERTEX)
       numGhosts++;
   }
-  printf("%u vertices, %lu Delaunay tetrahedra, %lu ghosts, %f s\n", mesh->num_vertices, mesh->tetrahedra.num - numGhosts, numGhosts, (double) (time2-time0)/CLOCKS_PER_SEC);
+  printf("%lu vertices, %lu Delaunay tetrahedra, %lu ghosts, %f s\n", mesh->num_vertices, mesh->tetrahedra.num - numGhosts, numGhosts, (double) (time2-time0)/CLOCKS_PER_SEC);
 
   gmshTetDraw(mesh, "output.msh");
+  #endif // DEBUG
 
   HXT_CHECK( HXT_mesh_delete(&mesh) );
 
-  #endif // DEBUG
   return HXT_STATUS_OK;
 }
