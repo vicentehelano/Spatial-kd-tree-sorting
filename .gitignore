@@ -10,3 +10,5 @@ test/test_Kd_tree/arvore.tex
 test/test_Kd_tree/bin/Release/arvore.pdf
 test/test_Kd_tree/bin/Release/arvore.synctex.gz
 test/test_Kd_tree/bin/Release/arvore.tex
+lib/CGAL-5.6.1
+lib/boost_1_85_0
