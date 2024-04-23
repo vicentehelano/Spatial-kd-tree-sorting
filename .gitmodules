@@ -8,9 +8,3 @@
 [submodule "lib/testingRNG"]
 	path = lib/testingRNG
 	url = https://github.com/vicentehelano/testingRNG.git
-[submodule "lib/boost"]
-	path = lib/boost
-	url = https://github.com/boostorg/boost.git
-[submodule "lib/CGAL"]
-	path = lib/CGAL
-	url = https://github.com/CGAL/cgal.git
