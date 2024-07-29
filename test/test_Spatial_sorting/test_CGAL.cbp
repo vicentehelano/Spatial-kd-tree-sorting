@@ -45,7 +45,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-static" />
-					<Add library="../../lib/CGAL-5.6.1/auxiliary/gmp/lib/libgmp-10.lib" />
+					<Add option="-lgmp" />
 				</Linker>
 			</Target>
 		</Build>

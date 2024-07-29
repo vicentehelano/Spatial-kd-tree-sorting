@@ -25,8 +25,9 @@ sizes="1 10 20 30 35 40"
 methods="hxt kdt"
 datasets="axes cube cylinder disk planes paraboloid spiral saddle"
 tag=`date +%d-%h-%Y-%H:%M`
-to="vicente.sobrinho@ufca.edu.br"
+to="vicente.sobrinho@ufca.edu.br rafael.vanali@aluno.ufca.edu.br"
 
+echo "Running Marot's code..."
 for run in ${runs}; do
   echo "Rodada Nº "$run
   for size in ${sizes}; do
@@ -40,6 +41,17 @@ for run in ${runs}; do
   done
 done
 
+echo "Running CGAL..."
+for run in ${runs}; do
+  echo "Rodada Nº "$run
+  for size in ${sizes}; do
+    for data in ${datasets}; do
+      echo "  | Processando o conjunto '"${data}"' com "${size}"M pontos"
+      ./bin/Release/test_CGAL --${data} ${size}000000 >> cgal-${data}${size}M.txt 2>&1
+    done
+  done
+done
+
 echo "Preparando os dados gerados para envio..."
 for method in ${methods}; do
   folder="test_Spatial_sorting"-${method}-${tag}
@@ -48,6 +60,15 @@ for method in ${methods}; do
   zip ${folder}.zip ${folder}/*
 
   echo "  > Enviando os resultados do método " ${method}
-  echo "That's all folks!" | mutt -s "${folder}" -a "${folder}".zip -- ${to}
+  echo $folder | mutt -s "${folder}" -a "${folder}".zip -- ${to}
 done
+
+folder="test_CGAL"-${tag}
+mkdir -p ${folder}
+mv cgal-*.txt ${folder}/
+zip ${folder}.zip ${folder}/*
+
+echo "  > Enviando os resultados da CGAL"
+echo $folder | mutt -s "${folder}" -a "${folder}".zip -- ${to}
+
 echo "Feito!"
